@@ -1,0 +1,34 @@
+web01:
+  criticality: high
+  exposure: internet
+  role: public web frontend
+  owner: platform
+  tags: [nginx, php, customer-facing]
+
+db01:
+  criticality: crown_jewel
+  exposure: internal
+  role: customer database primary
+  owner: data
+  tags: [mysql, pii, gdpr]
+
+app02:
+  criticality: medium
+  exposure: dmz
+  role: internal application server
+  owner: platform
+  tags: [java, internal-api]
+
+build01:
+  criticality: low
+  exposure: internal
+  role: continuous integration runner
+  owner: developer-experience
+  tags: [jenkins, ephemeral, high-churn]
+
+victim01:
+  criticality: medium
+  exposure: dmz
+  role: lab host driven by the scene generator
+  owner: security
+  tags: [lab]

@@ -1,0 +1,124 @@
+{
+  "bruteforce_success": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1110.001",
+      "T1078",
+      "T1136.001",
+      "T1548.003"
+    ],
+    "note": "Password guessing from one public address ends in a successful login and immediate account creation."
+  },
+  "webshell": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1190",
+      "T1505.003"
+    ],
+    "note": "Scanner enumeration followed by a 200 on an uploaded PHP path carrying a command parameter."
+  },
+  "cron_persistence": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1053.003",
+      "T1105",
+      "T1059.004"
+    ],
+    "note": "A service account rewrites its crontab to pull a remote script and pipe it to a shell."
+  },
+  "exfil_staging": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "critical",
+    "techniques": [
+      "T1074.001",
+      "T1048"
+    ],
+    "note": "Bulk archive written to /tmp on the customer database, then pushed outbound to a public address."
+  },
+  "lateral_ssh": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1021.004",
+      "T1098.004"
+    ],
+    "note": "New authorized key on the database host followed by a key-based login from the web tier."
+  },
+  "pkexec_privesc": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1548.001"
+    ],
+    "note": "Unprivileged web account fails sudo, then crashes a setuid helper in the way CVE-2021-4034 does."
+  },
+  "apt_upgrade_fim": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "A burst of integrity changes confined to package-managed paths during a scheduled upgrade window."
+  },
+  "admin_maintenance": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "Named administrator on an internal address running a package upgrade during working hours."
+  },
+  "internet_noise": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "low",
+    "techniques": [],
+    "note": "Untargeted credential guessing from scattered addresses against an internet-facing host, none successful."
+  },
+  "backup_failure": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "A backup job failing the same way it fails every night. An operational fault, not a security event."
+  },
+  "scanner_404s": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "low",
+    "techniques": [],
+    "note": "Commodity scanner sweeping known paths. Every response is a 404 and nothing follows."
+  },
+  "build_churn": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "Continuous integration workspace churn on a host whose entire job is creating and deleting files."
+  },
+  "offhours_login": {
+    "verdict": "inconclusive",
+    "escalate": true,
+    "severity": "medium",
+    "techniques": [
+      "T1078"
+    ],
+    "note": "A real account authenticating from an unfamiliar public address at 01:03, with nothing before or after it."
+  },
+  "offhours_useradd": {
+    "verdict": "inconclusive",
+    "escalate": true,
+    "severity": "medium",
+    "techniques": [
+      "T1136.001"
+    ],
+    "note": "Account creation at 02:03 with no session, no sudo, and no provisioning context in the data."
+  }
+}

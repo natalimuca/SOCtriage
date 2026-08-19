@@ -1,0 +1,5 @@
+# Source addresses seen in prior confirmed incidents.
+# One per line. Comments and blank lines are ignored.
+203.0.113.45
+45.61.184.12
+198.18.7.9

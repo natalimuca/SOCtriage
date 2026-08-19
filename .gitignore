@@ -1,0 +1,10 @@
+__pycache__/
+*.egg-info/
+.venv/
+.env
+data/attack.json
+docker/config/wazuh_indexer_ssl_certs/
+out/
+.pytest_cache/
+data/baseline.json
+eval/baseline.json
