@@ -67,6 +67,11 @@ shell delivered after a scan, cron persistence pulling a remote script), three a
 docker compose -f docker/docker-compose.yml exec victim python scenes.py --scene web_shell
 ```
 
+The passwords in `docker/` are the defaults shipped with Wazuh's own single-node example and
+are committed on purpose so the lab comes up in one command. They protect nothing but a
+throwaway container; change them before pointing this at anything real. Credentials that
+matter live in `.env`, which is not tracked.
+
 The indexer needs `vm.max_map_count` at 262144 inside the Docker VM. On Docker Desktop:
 `wsl -d docker-desktop -e sh -c 'echo 262144 > /proc/sys/vm/max_map_count'`.
 
