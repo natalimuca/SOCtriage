@@ -11,6 +11,23 @@ generator container that writes attack and benign activity into a log volume the
 monitors. Wazuh's own decoders and rules produce the alerts; nothing about the detection is
 simulated on the Python side.
 
+## The problem
+
+![Wazuh Threat Hunting](docs/wazuh-alerts.png)
+
+This is what a SIEM hands an analyst: 331 alerts in a day, 79 authentication failures, 31
+successes, and a chart of which ATT&CK techniques fired. It cannot tell you whether any of
+those 31 successes followed the 79 failures on the same host inside three minutes, which is
+the difference between background noise and an intrusion. Answering that is a person reading
+alerts one at a time.
+
+![Triage output](docs/triage-run.png)
+
+Same alerts, after the pipeline. Four incidents, two worth escalating, 4.8 cents, and the
+first line names the account, the source address, the privilege escalation, the backdoor
+account and its UID, and the persistence mechanism. That is 118 alerts collapsed into one
+paragraph a human can act on.
+
 ## Flow
 
 ```
