@@ -51,17 +51,34 @@ evaluation runs without the stack.
 ## Setup
 
 ```bash
-python -m venv .venv && .venv/Scripts/python.exe -m pip install -e ".[dev]"
+python -m venv .venv
+```
+
+Activate it. On Windows PowerShell:
+
+```bash
+.venv\Scripts\Activate.ps1
+```
+
+On macOS or Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+```bash
+pip install -e ".[dev]"
 ```
 
 ```bash
 cp .env.example .env
 ```
 
-Set `ANTHROPIC_API_KEY` in `.env`. Then pull the ATT&CK matrix once:
+Every command below assumes that environment is active. Set `ANTHROPIC_API_KEY` in `.env`,
+then pull the ATT&CK matrix once:
 
 ```bash
-.venv/Scripts/python.exe -m soc.cli sync
+python -m soc.cli sync
 ```
 
 ## The stack
@@ -73,7 +90,7 @@ docker compose -f docker/generate-indexer-certs.yml run --rm generator
 ```
 
 ```bash
-.venv/Scripts/python.exe -m soc.cli stack up
+python -m soc.cli stack up
 ```
 
 Four containers: `wazuh.manager`, `wazuh.indexer`, `wazuh.dashboard` (https://localhost:8443,
@@ -91,21 +108,26 @@ are committed on purpose so the lab comes up in one command. They protect nothin
 throwaway container; change them before pointing this at anything real. Credentials that
 matter live in `.env`, which is not tracked.
 
-The indexer needs `vm.max_map_count` at 262144 inside the Docker VM. On Docker Desktop:
-`wsl -d docker-desktop -e sh -c 'echo 262144 > /proc/sys/vm/max_map_count'`.
+The indexer needs `vm.max_map_count` at 262144. On Linux that is
+`sudo sysctl -w vm.max_map_count=262144` on the host. On Docker Desktop it has to be set
+inside the VM, and it resets when Docker restarts:
+
+```bash
+wsl -d docker-desktop -e sh -c 'echo 262144 > /proc/sys/vm/max_map_count'
+```
 
 ## Running
 
 Triage what is in the indexer now:
 
 ```bash
-.venv/Scripts/python.exe -m soc.cli run --source wazuh --analyst claude
+python -m soc.cli run --source wazuh --analyst claude
 ```
 
 Follow the stack continuously:
 
 ```bash
-.venv/Scripts/python.exe -m soc.cli watch --interval 60
+python -m soc.cli watch --interval 60
 ```
 
 Both write one markdown report per incident, a `summary.md` ranked by severity, and
@@ -123,11 +145,11 @@ nightly backup failure, scanner 404s, CI workspace churn), and two genuinely amb
 where the honest answer is `inconclusive` with an escalation.
 
 ```bash
-.venv/Scripts/python.exe -m soc.cli eval --analyst claude
+python -m soc.cli eval --analyst claude
 ```
 
 ```bash
-.venv/Scripts/python.exe -m soc.cli eval --analyst rules
+python -m soc.cli eval --analyst rules
 ```
 
 The corpus is regenerated from `eval/make.py`, which holds the alerts and the labels
