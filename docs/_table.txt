@@ -1,0 +1,12 @@
+| metric | rules baseline | Haiku 4.5 | Opus 5 |
+| --- | --- | --- | --- |
+| escalation F1 | 0.650 [0.44, 0.81] | 0.870 [0.74, 0.96] | 0.980 [0.93, 1.00] |
+| escalation misses | 11 | 4 | 0 |
+| escalation false alarms | 3 | 2 | 1 |
+| verdict accuracy | 0.475 [0.33, 0.62] | 0.850 [0.72, 0.95] | 0.900 [0.80, 0.97] |
+| severity exact | 0.500 [0.35, 0.65] | 0.575 [0.42, 0.72] | 0.725 [0.57, 0.85] |
+| severity within one band | 0.650 | 0.850 | 1.000 |
+| technique F1 | 0.959 [0.90, 1.00] | 0.817 [0.70, 0.91] | 0.623 [0.51, 0.73] |
+| Brier score | 0.250 [0.25, 0.25] | 0.139 [0.06, 0.23] | 0.085 [0.05, 0.13] |
+| cost per incident | $0.000 | $0.006 | $0.049 |
+| latency p50 | 0 ms | 10,230 ms | 28,523 ms |

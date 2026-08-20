@@ -1,4 +1,4 @@
-# SOCtriage — illustrated walkthrough
+# SOCtriage: illustrated walkthrough
 
 This is the whole system end to end, from the raw alerts a SIEM produces to the model's
 verdicts written back into that same SIEM. Every screenshot is from the running lab on one
@@ -81,31 +81,129 @@ channel becomes a queue of things a human should look at rather than a copy of e
 The three screens above show the system working. They do not, on their own, prove it works
 *better than sorting by rule level*. That is a separate question, and the harness answers it.
 
+### The corpus
+
+Everything below is scored against `eval/alerts.jsonl`: 93 Wazuh-shaped alerts forming 40
+labelled cases. The balance is deliberate:
+
+- **16 true positives**, spanning credential access, web shells, cron and systemd persistence,
+  reverse shells, an `/etc/shadow` read, log tampering, DNS tunnelling, ransomware-style mass
+  encryption, VPN and mail abuse, and a sudoers backdoor.
+- **16 false positives**, the things that look identical to a threshold but are not attacks:
+  package upgrades and removals, certbot renewals, logrotate, config-management pushes,
+  developer git activity, CI image churn, a crash-looping service, monitoring probes.
+- **8 genuinely ambiguous cases**, where the honest verdict is `inconclusive` with an
+  escalation: an off-hours database dump, a dormant account waking up, a login from a new
+  country, a lone binary changing with no package to explain it.
+
+The false positives and the ambiguous cases are the point. A threshold escalates on severity,
+so it cannot tell a package upgrade from an attacker or admit that a case is genuinely unclear.
+The corpus is built to punish exactly that.
+
+### The scoreboard
+
+Three analysts on the same 40 cases. `rules` is the baseline: severity from Wazuh rule level,
+escalation above level 10, techniques copied from the firing rules. Square brackets are 95%
+bootstrap intervals over the cases; they are wide because 40 is a small number, and they are
+shown so no single figure is read as more precise than it is.
+
+| metric | rules baseline | haiku 4.5 | opus 5 |
+| --- | --- | --- | --- |
+| escalation F1 | 0.650 [0.44, 0.81] | 0.870 [0.74, 0.96] | 0.980 [0.93, 1.00] |
+| escalation misses | 11 | 4 | 0 |
+| escalation false alarms | 3 | 2 | 1 |
+| verdict accuracy | 0.475 [0.33, 0.62] | 0.850 [0.72, 0.95] | 0.900 [0.80, 0.97] |
+| severity exact | 0.500 [0.35, 0.65] | 0.575 [0.42, 0.72] | 0.725 [0.57, 0.85] |
+| severity within one band | 0.650 | 0.850 | 1.000 |
+| technique F1 | 0.959 [0.90, 1.00] | 0.817 [0.70, 0.91] | 0.623 [0.51, 0.73] |
+| Brier | 0.250 [0.25, 0.25] | 0.139 [0.06, 0.23] | 0.085 [0.05, 0.13] |
+| cost per incident | $0.000 | $0.006 | $0.049 |
+| latency p50 | 0 ms | 10,230 ms | 28,523 ms |
+
+Read the rows this way:
+
+- **escalation F1** is the metric that matters most. A miss is an incident nobody looked at; a
+  false alarm is wasted analyst time. The baseline misses 11 of the incidents that should
+  escalate. Haiku misses 4, Opus misses none.
+- **verdict accuracy** is where the threshold collapses. It sits at 0.475, barely a coin flip,
+  because it cannot separate a benign package upgrade from an attack. Both models roughly double
+  it.
+- **Brier** scores the confidence, not just the answer. The baseline reports a flat 0.5 on
+  everything, which is what its Brier of 0.250 measures. The models' confidence actually tracks
+  whether they are right, so their Brier is much lower.
+- **technique F1** is the one row where the baseline "wins", and it is a trap. See the next
+  section.
+- **cost and latency** are the price of the improvement: a fraction of a cent and ten seconds
+  for Haiku, roughly eight times that for Opus.
+
+### Which differences are real
+
+A point estimate on 40 cases moves if a couple of incidents change, so the harness does not
+trust the raw numbers. `soc compare` runs a paired bootstrap: resample the cases, rerun both
+analysts on the same resample, and look at the distribution of the difference. If that interval
+contains zero, the corpus cannot tell the two apart.
+
 ![Paired bootstrap comparison](eval-compare.png)
 
-`soc compare` runs a paired bootstrap: resample the 40 cases, rerun both analysts on the same
-resample, and check whether the difference clears zero. Against the threshold baseline, Opus
-separates on escalation F1, verdict accuracy, and Brier score, the metrics a SOC actually lives
-on. It does **not** separate on severity (the corpus is too small to call that one), and it
-scores *worse* on technique F1, which is an artifact of the labelling convention rather than the
-model, explained in the README. Reporting the two that do not clear alongside the three that do
-is the point: the harness is built to knock down its own claims, not to flatter them.
+Baseline against Opus:
+
+| metric | baseline | opus | delta | 95% CI of delta | verdict |
+| --- | --- | --- | --- | --- | --- |
+| escalation F1 | 0.650 | 0.980 | +0.330 | [+0.170, +0.532] | separated |
+| verdict accuracy | 0.475 | 0.900 | +0.425 | [+0.250, +0.600] | separated |
+| severity exact | 0.500 | 0.725 | +0.225 | [+0.000, +0.450] | overlaps zero |
+| technique F1 | 0.959 | 0.623 | -0.336 | [-0.449, -0.222] | separated |
+| Brier | 0.250 | 0.085 | -0.165 | [-0.201, -0.124] | separated |
+
+Two things are established. The models genuinely beat the threshold baseline on escalation,
+verdict accuracy, and calibration, and those wins survive the bootstrap. On the earlier 14-case
+corpus none of them did; the difference is sample size, not a change to the models. Severity is
+the one improvement the corpus still cannot confirm: the delta is positive but its interval
+touches zero.
+
+The technique row separates in the *wrong* direction, and that one is the metric's fault, not
+the model's. Opus finds more of the labelled techniques (recall 0.917), but it also adds
+techniques the labels do not carry, and the additions are mostly right: `T1595 Active Scanning`
+on a 404 sweep, `T1005 Data from Local System` on a `mysqldump --all-databases`. The labels omit
+those because they were written to a convention (minimal sets on true positives, empty on false
+positives), so `technique_f1` is partly scoring agreement with that convention rather than
+correctness, and it penalises the more thorough model for being thorough.
+
+### Are the labels any good?
+
+The obvious objection is that one person wrote all 40 labels, so the whole scoreboard measures
+agreement with that one person. `soc agreement` is a partial check.
 
 ![Second-annotator agreement](eval-agreement.png)
 
-`soc agreement` addresses the obvious objection that one person wrote all the labels. It treats
-Opus, which never saw the labels, as an independent second annotator and measures how often it
-agrees. Cohen's κ is 0.85 on the verdict and 0.95 on the escalate decision, "almost perfect"
-agreement, which is some evidence the labels are not arbitrary. The four cases where they
-disagree are all on the `inconclusive` boundary, exactly where a real analyst would also
-hesitate, and they are named so a second human knows where to look first. This is a check, not
-a substitute for two human annotators, and the README says so.
+It treats Opus, which never saw the labels, as an independent second annotator and measures how
+often it agrees:
+
+| dimension | Cohen's κ | raw agreement |
+| --- | --- | --- |
+| verdict | 0.846 | 0.900 |
+| escalation | 0.947 | 0.975 |
+
+κ above 0.8 is "almost perfect" agreement by the usual reading, so an independent frontier model
+backs the hand labels on 36 of 40 verdicts. The four it disputes are all on the `inconclusive`
+boundary, exactly where a real analyst would also hesitate:
+
+| case | label | Opus |
+| --- | --- | --- |
+| `vpn_bruteforce_success` | true_positive | inconclusive |
+| `mail_relay_abuse` | true_positive | inconclusive |
+| `service_crashloop` | false_positive | inconclusive |
+| `encoded_command` | inconclusive | true_positive |
+
+This does not remove the bias, since the same person wrote the labels and chose the model. It
+does name the four cases a second human should adjudicate first, which is more useful than
+asserting the single annotator was right. Two independent human annotators remain the real fix.
 
 ## The arc
 
-Raw SIEM alerts (1) → the pipeline's triage, separating attacker from admin (2) → verdicts
-written back into the SIEM as a searchable escalation queue (3) → an evaluation that establishes
-the difference is real, and is honest about what it cannot establish (4). That is the whole
-project: the LLM does the tier-1 first pass, its output lands where a real SOC would consume it,
-and there are numbers behind the claim rather than a vibe. The full results and their limits are
-in the [README](../README.md).
+Raw SIEM alerts (1), the pipeline's triage separating attacker from admin (2), verdicts written
+back into the SIEM as a searchable escalation queue (3), and an evaluation that establishes the
+difference is real while staying honest about what it cannot establish (4). That is the whole
+project. The LLM does the tier-1 first pass, its output lands where a real SOC would consume it,
+and there are numbers behind the claim rather than a vibe. The design rationale and the full
+per-case detail are in the [README](../README.md).
