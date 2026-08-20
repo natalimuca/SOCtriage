@@ -120,17 +120,26 @@ class ClaudeAnalyst(Analyst):
         parts += ["", "Triage this incident."]
         return "\n".join(parts)
 
+    @property
+    def _frontier(self) -> bool:
+        return any(self.model.startswith(p) for p in ("claude-opus-5", "claude-sonnet-5", "claude-fable-5"))
+
     def triage(self, incident: Incident) -> Result:
         start = time.perf_counter()
+        extra: dict = {}
+        if self._frontier:
+            extra = {
+                "output_config": {"effort": settings.effort},
+                "betas": ["server-side-fallback-2026-07-01"],
+                "fallbacks": "default",
+            }
         response = self.client.beta.messages.parse(
             model=self.model,
             max_tokens=settings.max_tokens,
             system=self._system(),
             messages=[{"role": "user", "content": self._user(incident)}],
             output_format=Triage,
-            output_config={"effort": settings.effort},
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
+            **extra,
         )
         latency = int((time.perf_counter() - start) * 1000)
         served_by = response.model
@@ -164,7 +173,10 @@ class ClaudeAnalyst(Analyst):
         )
 
     def _cost(self, usage) -> float:
-        rate_in, rate_out = PRICING.get(self.model, (5.0, 25.0))
+        rate_in, rate_out = next(
+            (rates for prefix, rates in PRICING.items() if self.model.startswith(prefix)),
+            (5.0, 25.0),
+        )
         cache_read = getattr(usage, "cache_read_input_tokens", 0) or 0
         cache_write = getattr(usage, "cache_creation_input_tokens", 0) or 0
         total = (

@@ -128,37 +128,66 @@ alerts all belong to one case, so a correlation bug cannot hide inside a triage 
 `--analyst rules` is severity from Wazuh rule level, escalation above level 10, techniques
 copied from whatever the firing rules asserted. It exists to be beaten:
 
-| metric | rules baseline | claude |
+| metric | rules baseline | haiku 4.5 |
 | --- | --- | --- |
-| escalation F1 | 0.800 | not run |
-| escalation misses | 2 | not run |
-| escalation false alarms | 1 | not run |
-| verdict accuracy | 0.500 | not run |
-| severity exact | 0.571 | not run |
-| technique F1 | 0.909 | not run |
-| Brier | 0.250 | not run |
+| escalation F1 | **0.800** | 0.714 |
+| escalation misses | **2** | 3 |
+| escalation false alarms | 1 | 1 |
+| verdict accuracy | 0.500 | **0.786** |
+| severity exact | **0.571** | 0.429 |
+| severity within one band | 0.714 | **0.857** |
+| technique F1 | 0.909 | 0.909 |
+| Brier | 0.250 | **0.165** |
 | correlation purity | 1.000 | 1.000 |
+| cost per incident | $0 | $0.006 |
+| latency p50 | 0 ms | 11,420 ms |
 
-Correlation purity is identical by construction: correlation happens before either analyst is
+Correlation purity is identical by construction: correlation runs before either analyst is
 called, so it measures the pipeline, not the model.
 
 The baseline is deliberately not weak. Rule level alone gets escalation F1 to 0.8 on this
 corpus, and copying rule-asserted techniques scores 0.909 because Wazuh's own ATT&CK mapping
 is decent. Verdict accuracy is where it collapses: a threshold cannot tell a package upgrade
 from an attacker, so it sits at 0.500 and reports 0.5 confidence on everything, which is what
-the Brier score of 0.250 measures.
+the Brier score of 0.250 measures. Technique F1 ties at 0.909 because both analysts start
+from the same rule assertions and neither adds or drops enough to separate them.
 
-**The claude column is unrun, not withheld.** Filling it takes one command against a corpus
-that is already in the repo, so anything printed there before that command executes would be
-a guess, and a benchmark that publishes guesses is not a benchmark. Put an API key in `.env`
-and run:
+### What the model actually did
+
+Haiku 4.5 does not beat the baseline outright, and the way it loses is the useful part.
+
+It understands the incidents far better. Verdict accuracy goes from 0.500 to 0.786, and the
+Brier score improves from 0.250 to 0.165, meaning its stated confidence carries real
+information rather than being a constant. It correctly cleared all six false positives,
+naming the benign mechanism each time: package upgrade, provisioning, background noise,
+a nightly job that always fails.
+
+It still loses on escalation F1, 0.714 against 0.800, and every point of that loss comes from
+one behaviour: **it treats uncertainty as a reason not to escalate.** All three misses are
+cases where the honest verdict is `inconclusive` and the correct action is to hand it to a
+human anyway. On `offhours_useradd` it went further and called an unexplained 02:00 root
+account creation a false positive at 0.92 confidence. Its one false alarm runs the other way,
+promoting a scanner sweeping 404s to a true positive.
+
+The second pattern is severity inflation. Exact severity accuracy is 0.429, worse than the
+baseline's 0.571, but within-one-band is 0.857, better than 0.714. It is not confused about
+how bad things are, it is consistently one band hot: four of the six true positives came back
+`critical` where the label says `high`. On a real queue that means a `critical` page loses its
+meaning by the end of the first week.
+
+Both failures are prompt problems before they are model problems. The playbook tells the model
+when to escalate a `medium`, but never states that an `inconclusive` verdict is itself grounds
+for escalation, and it defines `critical` without saying it should be rare. That is the point
+of having the harness: the failure has a name, a case list, and a number to move.
+
+Reproduce with:
 
 ```bash
 python -m soc.cli eval --analyst claude
 ```
 
-Fourteen incidents at high effort costs a few cents. The numbers land in `eval/scores.json`
-alongside a per-case breakdown showing exactly which cases each analyst got wrong.
+Per-case detail lands in `eval/scores.json`, showing exactly which cases each analyst got
+wrong and what it said. Fourteen incidents cost $0.086 on Haiku 4.5.
 
 ## Design notes
 

@@ -1,79 +1,79 @@
 {
-  "analyst": "rules",
+  "analyst": "claude:claude-haiku-4-5-20251001",
   "cases_labelled": 14,
   "incidents_produced": 14,
   "metrics": {
     "correlation_purity": 1.0,
-    "verdict_accuracy": 0.5,
-    "severity_exact": 0.5714285714285714,
-    "severity_within_one": 0.7142857142857143,
-    "escalation_precision": 0.8571428571428571,
-    "escalation_recall": 0.75,
-    "escalation_f1": 0.7999999999999999,
+    "verdict_accuracy": 0.7857142857142857,
+    "severity_exact": 0.42857142857142855,
+    "severity_within_one": 0.8571428571428571,
+    "escalation_precision": 0.8333333333333334,
+    "escalation_recall": 0.625,
+    "escalation_f1": 0.7142857142857143,
     "escalation_false_alarms": 1,
-    "escalation_misses": 2,
+    "escalation_misses": 3,
     "technique_precision": 0.8823529411764706,
     "technique_recall": 0.9375,
     "technique_f1": 0.9090909090909091,
-    "brier": 0.25,
-    "confidence_when_right": 0.5,
-    "confidence_when_wrong": 0.5,
-    "latency_p50_ms": 0,
-    "latency_p95_ms": 0,
-    "cost_total_usd": 0.0,
-    "cost_per_incident_usd": 0.0
+    "brier": 0.1654,
+    "confidence_when_right": 0.890909090909091,
+    "confidence_when_wrong": 0.8133333333333334,
+    "latency_p50_ms": 11420,
+    "latency_p95_ms": 18488,
+    "cost_total_usd": 0.08583,
+    "cost_per_incident_usd": 0.006130714285714286
   },
   "cases": [
     {
       "case": "admin_maintenance",
       "pure": true,
-      "verdict": "inconclusive",
+      "verdict": "false_positive",
       "verdict_expected": "false_positive",
-      "verdict_ok": false,
+      "verdict_ok": true,
       "severity": "informational",
       "severity_expected": "informational",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.5,
+      "confidence": 0.92,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "2 alerts on app02, max rule level 3",
-      "latency_ms": 0,
-      "cost_usd": 0.0
+      "summary": "System administrator natali performed routine package management via SSH and sudo on app02.",
+      "latency_ms": 5632,
+      "cost_usd": 0.004223
     },
     {
       "case": "apt_upgrade_fim",
       "pure": true,
-      "verdict": "inconclusive",
+      "verdict": "false_positive",
       "verdict_expected": "false_positive",
-      "verdict_ok": false,
-      "severity": "medium",
-      "severity_expected": "informational",
-      "escalate": false,
-      "escalate_expected": false,
-      "confidence": 0.5,
-      "techniques": [],
-      "techniques_expected": [],
-      "summary": "4 alerts on app02, max rule level 7",
-      "latency_ms": 0,
-      "cost_usd": 0.0
-    },
-    {
-      "case": "backup_failure",
-      "pure": true,
-      "verdict": "inconclusive",
-      "verdict_expected": "false_positive",
-      "verdict_ok": false,
+      "verdict_ok": true,
       "severity": "informational",
       "severity_expected": "informational",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.5,
+      "confidence": 0.92,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "2 alerts on db01, max rule level 2",
-      "latency_ms": 0,
-      "cost_usd": 0.0
+      "summary": "Debian package libssl3 installed on app02 triggered integrity alerts on OpenSSL binaries and libraries; standard package upgrade sequence.",
+      "latency_ms": 7257,
+      "cost_usd": 0.00481
+    },
+    {
+      "case": "backup_failure",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.95,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "Backup job failure on db01 at 03:30 UTC; rsync connection loss followed by exit status 12.",
+      "latency_ms": 12200,
+      "cost_usd": 0.004661
     },
     {
       "case": "bruteforce_success",
@@ -81,11 +81,11 @@
       "verdict": "true_positive",
       "verdict_expected": "true_positive",
       "verdict_ok": true,
-      "severity": "high",
+      "severity": "critical",
       "severity_expected": "high",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.5,
+      "confidence": 0.95,
       "techniques": [
         "T1078",
         "T1110.001",
@@ -98,26 +98,26 @@
         "T1136.001",
         "T1548.003"
       ],
-      "summary": "6 alerts on web01, max rule level 10",
-      "latency_ms": 0,
-      "cost_usd": 0.0
+      "summary": "Attacker from flagged IP enumerated invalid SSH users, gained valid access as backup account, escalated to root, and created a privileged persistence account on internet-exposed web server.",
+      "latency_ms": 18488,
+      "cost_usd": 0.00834
     },
     {
       "case": "build_churn",
       "pure": true,
-      "verdict": "inconclusive",
+      "verdict": "false_positive",
       "verdict_expected": "false_positive",
-      "verdict_ok": false,
-      "severity": "medium",
+      "verdict_ok": true,
+      "severity": "informational",
       "severity_expected": "informational",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.5,
+      "confidence": 0.95,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "3 alerts on build01, max rule level 7",
-      "latency_ms": 0,
-      "cost_usd": 0.0
+      "summary": "File-integrity alerts from Jenkins workspace during Maven build artifact generation.",
+      "latency_ms": 6576,
+      "cost_usd": 0.004672
     },
     {
       "case": "cron_persistence",
@@ -125,13 +125,14 @@
       "verdict": "true_positive",
       "verdict_expected": "true_positive",
       "verdict_ok": true,
-      "severity": "high",
+      "severity": "critical",
       "severity_expected": "high",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.5,
+      "confidence": 0.92,
       "techniques": [
         "T1053.003",
+        "T1059.004",
         "T1105"
       ],
       "techniques_expected": [
@@ -139,9 +140,9 @@
         "T1059.004",
         "T1105"
       ],
-      "summary": "2 alerts on web01, max rule level 10",
-      "latency_ms": 0,
-      "cost_usd": 0.0
+      "summary": "Attacker added a malicious cron job to svc_update account on web01 that downloads and executes a shell script from an external host.",
+      "latency_ms": 11381,
+      "cost_usd": 0.007143
     },
     {
       "case": "exfil_staging",
@@ -153,7 +154,7 @@
       "severity_expected": "critical",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.5,
+      "confidence": 0.92,
       "techniques": [
         "T1048",
         "T1074.001"
@@ -162,96 +163,31 @@
         "T1048",
         "T1074.001"
       ],
-      "summary": "3 alerts on db01, max rule level 12",
-      "latency_ms": 0,
-      "cost_usd": 0.0
+      "summary": "Attacker exfiltrated customer database from db01 using mysqldump to a flagged external IP, staging data in /tmp/.cache before transfer.",
+      "latency_ms": 10503,
+      "cost_usd": 0.00694
     },
     {
       "case": "internet_noise",
       "pure": true,
-      "verdict": "inconclusive",
+      "verdict": "false_positive",
       "verdict_expected": "false_positive",
-      "verdict_ok": false,
-      "severity": "low",
+      "verdict_ok": true,
+      "severity": "informational",
       "severity_expected": "low",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.5,
+      "confidence": 0.88,
       "techniques": [
         "T1110.001"
       ],
       "techniques_expected": [],
-      "summary": "3 alerts on web01, max rule level 5",
-      "latency_ms": 0,
-      "cost_usd": 0.0
+      "summary": "Three failed SSH login attempts against non-existent users from different private sources over 5 minutes; consistent with internet background noise on a public-facing host.",
+      "latency_ms": 8522,
+      "cost_usd": 0.005418
     },
     {
       "case": "lateral_ssh",
-      "pure": true,
-      "verdict": "inconclusive",
-      "verdict_expected": "true_positive",
-      "verdict_ok": false,
-      "severity": "high",
-      "severity_expected": "high",
-      "escalate": true,
-      "escalate_expected": true,
-      "confidence": 0.5,
-      "techniques": [
-        "T1021.004",
-        "T1098.004"
-      ],
-      "techniques_expected": [
-        "T1021.004",
-        "T1098.004"
-      ],
-      "summary": "2 alerts on db01, max rule level 7",
-      "latency_ms": 0,
-      "cost_usd": 0.0
-    },
-    {
-      "case": "offhours_login",
-      "pure": true,
-      "verdict": "inconclusive",
-      "verdict_expected": "inconclusive",
-      "verdict_ok": true,
-      "severity": "informational",
-      "severity_expected": "medium",
-      "escalate": false,
-      "escalate_expected": true,
-      "confidence": 0.5,
-      "techniques": [
-        "T1078"
-      ],
-      "techniques_expected": [
-        "T1078"
-      ],
-      "summary": "1 alerts on app02, max rule level 3",
-      "latency_ms": 0,
-      "cost_usd": 0.0
-    },
-    {
-      "case": "offhours_useradd",
-      "pure": true,
-      "verdict": "inconclusive",
-      "verdict_expected": "inconclusive",
-      "verdict_ok": true,
-      "severity": "medium",
-      "severity_expected": "medium",
-      "escalate": false,
-      "escalate_expected": true,
-      "confidence": 0.5,
-      "techniques": [
-        "T1136.001"
-      ],
-      "techniques_expected": [
-        "T1136.001"
-      ],
-      "summary": "1 alerts on build01, max rule level 8",
-      "latency_ms": 0,
-      "cost_usd": 0.0
-    },
-    {
-      "case": "pkexec_privesc",
       "pure": true,
       "verdict": "true_positive",
       "verdict_expected": "true_positive",
@@ -260,16 +196,79 @@
       "severity_expected": "high",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.5,
+      "confidence": 0.92,
+      "techniques": [
+        "T1021.004",
+        "T1098.004"
+      ],
+      "techniques_expected": [
+        "T1021.004",
+        "T1098.004"
+      ],
+      "summary": "Attacker modified the SSH authorized_keys file for the appsvc service account on the primary customer database, then successfully authenticated using the newly installed key within 74 seconds.",
+      "latency_ms": 11420,
+      "cost_usd": 0.007245
+    },
+    {
+      "case": "offhours_login",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "medium",
+      "severity_expected": "medium",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.55,
+      "techniques": [
+        "T1078"
+      ],
+      "techniques_expected": [
+        "T1078"
+      ],
+      "summary": "SSH authentication success for user dmitri from a public IP address on a DMZ-exposed application server, never seen before on this host.",
+      "latency_ms": 17095,
+      "cost_usd": 0.006365
+    },
+    {
+      "case": "offhours_useradd",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": false,
+      "severity": "informational",
+      "severity_expected": "medium",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.92,
+      "techniques": [],
+      "techniques_expected": [
+        "T1136.001"
+      ],
+      "summary": "New CI service account ci_runner2 created on Jenkins runner build01, consistent with automated provisioning.",
+      "latency_ms": 11847,
+      "cost_usd": 0.004414
+    },
+    {
+      "case": "pkexec_privesc",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.6,
       "techniques": [
         "T1548.001"
       ],
       "techniques_expected": [
         "T1548.001"
       ],
-      "summary": "2 alerts on app02, max rule level 12",
-      "latency_ms": 0,
-      "cost_usd": 0.0
+      "summary": "www-data process attempted privilege escalation via sudo and pkexec within 37 seconds, triggering kernel fault in libc during pkexec execution.",
+      "latency_ms": 10360,
+      "cost_usd": 0.006723
     },
     {
       "case": "scanner_404s",
@@ -281,14 +280,14 @@
       "severity_expected": "low",
       "escalate": true,
       "escalate_expected": false,
-      "confidence": 0.5,
+      "confidence": 0.92,
       "techniques": [
         "T1190"
       ],
       "techniques_expected": [],
-      "summary": "3 alerts on web01, max rule level 10",
-      "latency_ms": 0,
-      "cost_usd": 0.0
+      "summary": "Targeted reconnaissance against public-facing web server using zgrab scanner, probing for known vulnerable software paths with multiple 404s and persistent attempts.",
+      "latency_ms": 14740,
+      "cost_usd": 0.006724
     },
     {
       "case": "webshell",
@@ -300,7 +299,7 @@
       "severity_expected": "high",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.5,
+      "confidence": 0.92,
       "techniques": [
         "T1190",
         "T1505.003"
@@ -309,9 +308,9 @@
         "T1190",
         "T1505.003"
       ],
-      "summary": "5 alerts on web01, max rule level 12",
-      "latency_ms": 0,
-      "cost_usd": 0.0
+      "summary": "Attacker exploited public-facing web server to upload and execute a PHP web shell, establishing command execution capability on a high-criticality internet-exposed asset.",
+      "latency_ms": 13616,
+      "cost_usd": 0.008152
     }
   ]
 }
