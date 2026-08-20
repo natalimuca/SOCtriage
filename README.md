@@ -158,9 +158,9 @@ Haiku 4.5 does not beat the baseline outright, and the way it loses is the usefu
 
 It understands the incidents far better. Verdict accuracy goes from 0.500 to 0.786, and the
 Brier score improves from 0.250 to 0.165, meaning its stated confidence carries real
-information rather than being a constant. It correctly cleared all six false positives,
-naming the benign mechanism each time: package upgrade, provisioning, background noise,
-a nightly job that always fails.
+information rather than being a constant. It cleared five of the six false positives and named
+the benign mechanism in each: package upgrade, provisioning, background noise, a nightly job
+that always fails, build-server churn.
 
 It still loses on escalation F1, 0.714 against 0.800, and every point of that loss comes from
 one behaviour: **it treats uncertainty as a reason not to escalate.** All three misses are
