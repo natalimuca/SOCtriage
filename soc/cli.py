@@ -137,10 +137,46 @@ def evaluate(
     table = Table(title=f"{analyst} vs labels")
     table.add_column("metric")
     table.add_column("value", justify="right")
+    table.add_column("95% CI", justify="right")
     for key, value in report["metrics"].items():
-        table.add_row(key, f"{value:.3f}" if isinstance(value, float) else str(value))
+        ci = report["intervals"].get(key)
+        table.add_row(
+            key,
+            f"{value:.3f}" if isinstance(value, float) else str(value),
+            f"[{ci['low']:.3f}, {ci['high']:.3f}]" if ci else "",
+        )
     console.print(table)
+    console.print(
+        f"intervals are a {report['incidents_produced']}-case bootstrap; "
+        "differences smaller than the interval are not evidence"
+    )
     console.print(f"scores written to {out}")
+
+
+@app.command()
+def compare(
+    left: str = typer.Argument(..., help="baseline scores file"),
+    right: str = typer.Argument(..., help="scores file to test against it"),
+):
+    """Paired bootstrap between two scored runs over the same cases."""
+    from .score import compare as run_compare
+
+    report = run_compare(left, right)
+    table = Table(title=f"{report['left']}  ->  {report['right']}  ({report['cases']} cases)")
+    for column in ("metric", "left", "right", "delta", "95% CI of delta", "verdict"):
+        table.add_column(column, justify="right" if column != "metric" else "left")
+    for key, m in report["metrics"].items():
+        separated = m["separated"]
+        table.add_row(
+            key,
+            f"{m['left']:.3f}",
+            f"{m['right']:.3f}",
+            f"{m['delta']:+.3f}",
+            f"[{m['ci_low']:+.3f}, {m['ci_high']:+.3f}]",
+            "[green]separated[/]" if separated else "[dim]overlaps zero[/]",
+        )
+    console.print(table)
+    console.print("overlaps zero means the corpus is too small to call the difference real")
 
 
 @app.command()

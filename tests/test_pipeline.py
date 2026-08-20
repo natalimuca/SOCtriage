@@ -78,6 +78,42 @@ def test_prf():
     assert prf(2, 0, 2)["recall"] == 0.5
 
 
+def test_intervals_bracket_the_point_estimate():
+    from soc.score import aggregate, counters, intervals
+
+    rows = [
+        counters(
+            {
+                "verdict": "true_positive" if n % 3 else "false_positive",
+                "verdict_expected": "true_positive",
+                "severity": "high",
+                "severity_expected": "high" if n % 2 else "critical",
+                "escalate": True,
+                "escalate_expected": n % 4 != 0,
+                "confidence": 0.8,
+                "techniques": ["T1110.001"],
+                "techniques_expected": ["T1110.001"],
+            }
+        )
+        for n in range(12)
+    ]
+    point = aggregate(rows)
+    bounds = intervals(rows, draws=400)
+    for key, band in bounds.items():
+        assert band["low"] <= point[key] <= band["high"], key
+
+
+def test_compare_reports_no_difference_against_itself(tmp_path):
+    from soc.score import compare
+
+    scores = Path("eval/scores.json")
+    assert scores.exists(), "run: python -m soc.cli eval --analyst rules"
+    report = compare(scores, scores, draws=300)
+    for key, m in report["metrics"].items():
+        assert m["delta"] == 0.0, key
+        assert not m["separated"], key
+
+
 def test_rules_baseline_holds():
     from soc.score import evaluate
 

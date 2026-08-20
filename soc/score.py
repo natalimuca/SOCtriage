@@ -1,4 +1,5 @@
 import json
+import random
 from collections import Counter
 from pathlib import Path
 
@@ -9,6 +10,13 @@ from .sources import build as build_source
 from .triage import build as build_analyst
 
 SEVERITY_ORDER = ["informational", "low", "medium", "high", "critical"]
+HEADLINE = [
+    "escalation_f1",
+    "verdict_accuracy",
+    "severity_exact",
+    "technique_f1",
+    "brier",
+]
 
 
 def case_of(result: Result) -> str:
@@ -25,6 +33,110 @@ def prf(tp: int, fp: int, fn: int) -> dict[str, float]:
     recall = tp / (tp + fn) if tp + fn else 0.0
     f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
     return {"precision": precision, "recall": recall, "f1": f1}
+
+
+def counters(row: dict) -> dict:
+    predicted = set(row["techniques"])
+    wanted = set(row["techniques_expected"])
+    gap = abs(
+        SEVERITY_ORDER.index(row["severity"]) - SEVERITY_ORDER.index(row["severity_expected"])
+    )
+    verdict_ok = row["verdict"] == row["verdict_expected"]
+    return {
+        "esc_tp": int(row["escalate"] and row["escalate_expected"]),
+        "esc_fp": int(row["escalate"] and not row["escalate_expected"]),
+        "esc_fn": int(not row["escalate"] and row["escalate_expected"]),
+        "tech_tp": len(predicted & wanted),
+        "tech_fp": len(predicted - wanted),
+        "tech_fn": len(wanted - predicted),
+        "verdict_ok": int(verdict_ok),
+        "sev_exact": int(gap == 0),
+        "sev_near": int(gap <= 1),
+        "brier": (row["confidence"] - (1.0 if verdict_ok else 0.0)) ** 2,
+        "pure": int(row.get("pure", True)),
+        "cost_usd": row.get("cost_usd", 0.0),
+        "latency_ms": row.get("latency_ms", 0),
+    }
+
+
+def aggregate(rows: list[dict]) -> dict:
+    n = len(rows) or 1
+    c = {key: sum(r[key] for r in rows) for key in rows[0] if key != "latency_ms"} if rows else {}
+    latencies = sorted(r["latency_ms"] for r in rows) or [0]
+    escalation = prf(c["esc_tp"], c["esc_fp"], c["esc_fn"])
+    techniques = prf(c["tech_tp"], c["tech_fp"], c["tech_fn"])
+    return {
+        "correlation_purity": c["pure"] / n,
+        "verdict_accuracy": c["verdict_ok"] / n,
+        "severity_exact": c["sev_exact"] / n,
+        "severity_within_one": c["sev_near"] / n,
+        "escalation_precision": escalation["precision"],
+        "escalation_recall": escalation["recall"],
+        "escalation_f1": escalation["f1"],
+        "escalation_false_alarms": c["esc_fp"],
+        "escalation_misses": c["esc_fn"],
+        "technique_precision": techniques["precision"],
+        "technique_recall": techniques["recall"],
+        "technique_f1": techniques["f1"],
+        "brier": c["brier"] / n,
+        "latency_p50_ms": latencies[len(latencies) // 2],
+        "latency_p95_ms": latencies[min(len(latencies) - 1, int(len(latencies) * 0.95))],
+        "cost_total_usd": c["cost_usd"],
+        "cost_per_incident_usd": c["cost_usd"] / n,
+    }
+
+
+def intervals(rows: list[dict], draws: int = 4000, seed: int = 0) -> dict:
+    rng = random.Random(seed)
+    samples: dict[str, list[float]] = {k: [] for k in HEADLINE}
+    for _ in range(draws):
+        drawn = [rows[rng.randrange(len(rows))] for _ in rows]
+        metrics = aggregate(drawn)
+        for key in HEADLINE:
+            samples[key].append(metrics[key])
+    out = {}
+    for key, values in samples.items():
+        values.sort()
+        out[key] = {
+            "low": values[int(0.025 * draws)],
+            "high": values[int(0.975 * draws) - 1],
+        }
+    return out
+
+
+def compare(left: str | Path, right: str | Path, draws: int = 4000, seed: int = 0) -> dict:
+    """Paired bootstrap over the same cases: is the difference bigger than the corpus noise?"""
+    a = json.loads(Path(left).read_text(encoding="utf-8"))
+    b = json.loads(Path(right).read_text(encoding="utf-8"))
+    by_case_a = {r["case"]: counters(r) for r in a["cases"]}
+    by_case_b = {r["case"]: counters(r) for r in b["cases"]}
+    shared = sorted(set(by_case_a) & set(by_case_b))
+    if not shared:
+        raise ValueError("the two runs share no cases")
+
+    base_a, base_b = aggregate([by_case_a[c] for c in shared]), aggregate([by_case_b[c] for c in shared])
+    rng = random.Random(seed)
+    deltas: dict[str, list[float]] = {k: [] for k in HEADLINE}
+    for _ in range(draws):
+        picks = [shared[rng.randrange(len(shared))] for _ in shared]
+        left_metrics = aggregate([by_case_a[c] for c in picks])
+        right_metrics = aggregate([by_case_b[c] for c in picks])
+        for key in HEADLINE:
+            deltas[key].append(right_metrics[key] - left_metrics[key])
+
+    out = {"left": a.get("analyst", str(left)), "right": b.get("analyst", str(right)), "cases": len(shared), "metrics": {}}
+    for key, values in deltas.items():
+        values.sort()
+        low, high = values[int(0.025 * draws)], values[int(0.975 * draws) - 1]
+        out["metrics"][key] = {
+            "left": base_a[key],
+            "right": base_b[key],
+            "delta": base_b[key] - base_a[key],
+            "ci_low": low,
+            "ci_high": high,
+            "separated": low > 0 or high < 0,
+        }
+    return out
 
 
 def evaluate(
@@ -45,90 +157,38 @@ def evaluate(
     results = pipeline.run(limit=10_000, learn=False)
 
     rows = []
-    esc_tp = esc_fp = esc_fn = 0
-    tech_tp = tech_fp = tech_fn = 0
-    verdict_hits = severity_hits = severity_near = 0
-    brier = 0.0
-
     for result in results:
         name = case_of(result)
         expected = truth.get(name)
         if expected is None:
             continue
         t = result.triage
-
-        verdict_ok = t.verdict == expected["verdict"]
-        verdict_hits += verdict_ok
-        brier += (t.confidence - (1.0 if verdict_ok else 0.0)) ** 2
-
-        gap = abs(SEVERITY_ORDER.index(t.severity) - SEVERITY_ORDER.index(expected["severity"]))
-        severity_hits += gap == 0
-        severity_near += gap <= 1
-
-        if t.escalate and expected["escalate"]:
-            esc_tp += 1
-        elif t.escalate and not expected["escalate"]:
-            esc_fp += 1
-        elif not t.escalate and expected["escalate"]:
-            esc_fn += 1
-
-        predicted = {x.id for x in t.techniques}
-        wanted = set(expected["techniques"])
-        tech_tp += len(predicted & wanted)
-        tech_fp += len(predicted - wanted)
-        tech_fn += len(wanted - predicted)
-
         rows.append(
             {
                 "case": name,
                 "pure": pure(result),
                 "verdict": t.verdict,
                 "verdict_expected": expected["verdict"],
-                "verdict_ok": verdict_ok,
+                "verdict_ok": t.verdict == expected["verdict"],
                 "severity": t.severity,
                 "severity_expected": expected["severity"],
                 "escalate": t.escalate,
                 "escalate_expected": expected["escalate"],
                 "confidence": t.confidence,
-                "techniques": sorted(predicted),
-                "techniques_expected": sorted(wanted),
+                "techniques": sorted({x.id for x in t.techniques}),
+                "techniques_expected": sorted(expected["techniques"]),
                 "summary": t.summary,
                 "latency_ms": result.latency_ms,
                 "cost_usd": result.cost_usd,
             }
         )
 
-    n = len(rows) or 1
-    latencies = sorted(r["latency_ms"] for r in rows) or [0]
-    escalation = prf(esc_tp, esc_fp, esc_fn)
-    techniques = prf(tech_tp, tech_fp, tech_fn)
-    correct = [r["confidence"] for r in rows if r["verdict_ok"]]
-    wrong = [r["confidence"] for r in rows if not r["verdict_ok"]]
-
+    counted = [counters(r) for r in rows]
     return {
         "analyst": results[0].analyst if results else analyst,
         "cases_labelled": len(truth),
         "incidents_produced": len(results),
-        "metrics": {
-            "correlation_purity": sum(r["pure"] for r in rows) / n,
-            "verdict_accuracy": verdict_hits / n,
-            "severity_exact": severity_hits / n,
-            "severity_within_one": severity_near / n,
-            "escalation_precision": escalation["precision"],
-            "escalation_recall": escalation["recall"],
-            "escalation_f1": escalation["f1"],
-            "escalation_false_alarms": esc_fp,
-            "escalation_misses": esc_fn,
-            "technique_precision": techniques["precision"],
-            "technique_recall": techniques["recall"],
-            "technique_f1": techniques["f1"],
-            "brier": brier / n,
-            "confidence_when_right": sum(correct) / len(correct) if correct else 0.0,
-            "confidence_when_wrong": sum(wrong) / len(wrong) if wrong else 0.0,
-            "latency_p50_ms": latencies[len(latencies) // 2],
-            "latency_p95_ms": latencies[min(len(latencies) - 1, int(len(latencies) * 0.95))],
-            "cost_total_usd": sum(r["cost_usd"] for r in rows),
-            "cost_per_incident_usd": sum(r["cost_usd"] for r in rows) / n,
-        },
+        "metrics": aggregate(counted),
+        "intervals": intervals(counted),
         "cases": sorted(rows, key=lambda r: r["case"]),
     }

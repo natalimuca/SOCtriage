@@ -16,12 +16,32 @@
     "technique_recall": 0.9375,
     "technique_f1": 0.9090909090909091,
     "brier": 0.25,
-    "confidence_when_right": 0.5,
-    "confidence_when_wrong": 0.5,
     "latency_p50_ms": 0,
     "latency_p95_ms": 0,
     "cost_total_usd": 0.0,
     "cost_per_incident_usd": 0.0
+  },
+  "intervals": {
+    "escalation_f1": {
+      "low": 0.5,
+      "high": 1.0
+    },
+    "verdict_accuracy": {
+      "low": 0.2857142857142857,
+      "high": 0.7857142857142857
+    },
+    "severity_exact": {
+      "low": 0.2857142857142857,
+      "high": 0.7857142857142857
+    },
+    "technique_f1": {
+      "low": 0.7692307692307693,
+      "high": 1.0
+    },
+    "brier": {
+      "low": 0.25,
+      "high": 0.25
+    }
   },
   "cases": [
     {

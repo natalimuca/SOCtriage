@@ -15,9 +15,7 @@
     "technique_precision": 0.6153846153846154,
     "technique_recall": 1.0,
     "technique_f1": 0.761904761904762,
-    "brier": 0.11004999999999998,
-    "confidence_when_right": 0.8341666666666666,
-    "confidence_when_wrong": 0.71,
+    "brier": 0.11005,
     "latency_p50_ms": 31736,
     "latency_p95_ms": 37577,
     "cost_total_usd": 0.710176,
@@ -322,5 +320,27 @@
       "latency_ms": 29225,
       "cost_usd": 0.050829
     }
-  ]
+  ],
+  "intervals": {
+    "escalation_f1": {
+      "low": 1.0,
+      "high": 1.0
+    },
+    "verdict_accuracy": {
+      "low": 0.6428571428571429,
+      "high": 1.0
+    },
+    "severity_exact": {
+      "low": 0.5714285714285714,
+      "high": 1.0
+    },
+    "technique_f1": {
+      "low": 0.5714285714285715,
+      "high": 0.9166666666666666
+    },
+    "brier": {
+      "low": 0.02762142857142857,
+      "high": 0.21589999999999998
+    }
+  }
 }
