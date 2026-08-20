@@ -144,12 +144,16 @@ produces about two hundred of them at first boot and they are a posture report, 
 
 ## Evaluation
 
-`eval/alerts.jsonl` is 39 Wazuh-shaped alerts forming 14 labelled cases: six true positives
-(credential access ending in account creation, web shell, cron persistence, staged
-exfiltration from the database, lateral movement by new SSH key, local privilege escalation),
-six false positives (package upgrade file-integrity burst, admin maintenance, internet noise,
-nightly backup failure, scanner 404s, CI workspace churn), and two genuinely ambiguous cases
-where the honest answer is `inconclusive` with an escalation.
+`eval/alerts.jsonl` is 93 Wazuh-shaped alerts forming 40 labelled cases: 16 true positives, 16
+false positives, and 8 genuinely ambiguous cases where the honest verdict is `inconclusive`
+with an escalation. The true positives span credential access, web shells, cron and systemd
+persistence, reverse shells, `/etc/shadow` reads, log tampering, DNS tunnelling, ransomware-style
+mass encryption, VPN and mail abuse, and a sudoers backdoor. The false positives are the things
+that look identical to a threshold but are not attacks: package upgrades and removals, certbot
+renewals, logrotate, config-management pushes, developer git activity, CI image churn, a
+crash-looping service, monitoring probes. The ambiguous cases are the ones a real analyst
+escalates without being sure: an off-hours database dump, a dormant account waking up, a login
+from a new country, a lone binary changing with no package to explain it.
 
 ```bash
 python -m soc.cli eval --analyst claude
@@ -159,126 +163,100 @@ python -m soc.cli eval --analyst claude
 python -m soc.cli eval --analyst rules
 ```
 
-The corpus is regenerated from `eval/make.py`, which holds the alerts and the labels
-together so a case and its ground truth cannot drift apart.
+The corpus is regenerated from `eval/make.py`, which holds the alerts and the labels together
+so a case and its ground truth cannot drift apart. CI regenerates it on every push and fails if
+the committed copy differs.
 
 ### Metrics
 
 Escalation precision and recall matter most: a missed escalation is an incident nobody looks
 at, a false one is analyst time. Alongside those the harness scores verdict accuracy, severity
-(exact and within one band), micro-averaged ATT&CK technique precision and recall, and a
-Brier score over the model's stated confidence, which catches an analyst that is right often
-but certain always. It also reports correlation purity, the fraction of incidents whose
-alerts all belong to one case, so a correlation bug cannot hide inside a triage score.
+(exact and within one band), micro-averaged ATT&CK technique precision and recall, and a Brier
+score over the model's stated confidence, which catches an analyst that is right often but
+certain always. It also reports correlation purity, the fraction of incidents whose alerts all
+belong to one case, so a correlation bug cannot hide inside a triage score.
 
 Every headline metric carries a 95% bootstrap interval, and `soc compare` runs a paired
-bootstrap between two scored runs. Fourteen cases is small enough that a one-case change moves
-a rate by seven points, so a harness that reported point estimates alone would mostly be
-measuring which cases happened to be in it.
+bootstrap between two scored runs. Forty cases is still small, so a difference smaller than the
+interval is not a finding, and the sections below only claim what clears it.
 
-### Baseline
+### Results
 
-`--analyst rules` is severity from Wazuh rule level, escalation above level 10, techniques
-copied from whatever the firing rules asserted. It exists to be beaten:
+`--analyst rules` is the baseline: severity from Wazuh rule level, escalation above level 10,
+techniques copied from whatever the firing rules asserted. It exists to be beaten. Both models
+run the same playbook (`soc/playbook.md`); Opus adds nothing to the prompt that Haiku does not
+get.
 
-| metric | rules baseline | haiku, first playbook | haiku, revised | opus 5, revised |
-| --- | --- | --- | --- | --- |
-| escalation F1 | 0.800<br>[0.50, 1.00] | 0.714<br>[0.36, 0.93] | 0.875<br>[0.67, 1.00] | 1.000<br>[1.00, 1.00] |
-| escalation misses | 2 | 3 | 1 | 0 |
-| escalation false alarms | 1 | 1 | 1 | 0 |
-| verdict accuracy | 0.500<br>[0.29, 0.79] | 0.786<br>[0.57, 1.00] | 0.857<br>[0.64, 1.00] | 0.857<br>[0.64, 1.00] |
-| severity exact | 0.571<br>[0.29, 0.79] | 0.429<br>[0.14, 0.71] | 0.500<br>[0.21, 0.79] | 0.786<br>[0.57, 1.00] |
-| severity within one band | 0.714 | 0.857 | 0.857 | 1.000 |
-| technique F1 | 0.909<br>[0.77, 1.00] | 0.909<br>[0.73, 1.00] | 0.903<br>[0.75, 1.00] | 0.762<br>[0.57, 0.92] |
-| Brier | 0.250<br>[0.25, 0.25] | 0.165<br>[0.03, 0.33] | 0.138<br>[0.01, 0.29] | 0.110<br>[0.03, 0.22] |
-| cost per incident | $0.000 | $0.006 | $0.007 | $0.051 |
-| latency p50 | 0 ms | 11,420 ms | 10,208 ms | 31,736 ms |
+| metric | rules baseline | haiku 4.5 | opus 5 |
+| --- | --- | --- | --- |
+| escalation F1 | 0.650<br>[0.44, 0.81] | 0.870<br>[0.74, 0.96] | 0.980<br>[0.93, 1.00] |
+| escalation misses | 11 | 4 | 0 |
+| escalation false alarms | 3 | 2 | 1 |
+| verdict accuracy | 0.475<br>[0.33, 0.62] | 0.850<br>[0.72, 0.95] | 0.900<br>[0.80, 0.97] |
+| severity exact | 0.500<br>[0.35, 0.65] | 0.575<br>[0.42, 0.72] | 0.725<br>[0.57, 0.85] |
+| severity within one band | 0.650 | 0.850 | 1.000 |
+| technique F1 | 0.959<br>[0.90, 1.00] | 0.817<br>[0.70, 0.91] | 0.623<br>[0.51, 0.73] |
+| Brier | 0.250<br>[0.25, 0.25] | 0.139<br>[0.06, 0.23] | 0.085<br>[0.05, 0.13] |
+| cost per incident | $0.000 | $0.006 | $0.049 |
+| latency p50 | 0 ms | 10,230 ms | 28,523 ms |
 
-Square brackets are 95% bootstrap intervals over the fourteen cases. They are wide because
-fourteen is a small number, and they are printed first because every claim below has to
-survive them.
+Square brackets are 95% bootstrap intervals over the forty cases. Correlation purity is 1.000
+for all three by construction: correlation runs before any analyst is called.
 
-## What survives the intervals
+### What survives the intervals
 
-A point estimate on fourteen cases is one or two incidents away from a different number, so
-the harness also does a **paired bootstrap**: resample the cases, rerun both analysts over the
-same resample, and look at the distribution of the difference. If that interval contains zero,
-the corpus cannot tell the two apart.
+A point estimate on forty cases still moves if a couple of incidents change, so every claim
+here is a **paired bootstrap**: resample the cases, rerun both analysts on the same resample,
+and check whether the difference clears zero.
 
 ```bash
-python -m soc.cli compare eval/scores.json eval/scores-opus.json
+python -m soc.cli compare eval/scores-rules.json eval/scores.json
 ```
 
-![Paired bootstrap comparison](docs/compare.png)
+**Both models beat the threshold baseline, and now the corpus can prove it.** Against the rules
+baseline, Haiku separates on escalation F1 (+0.22), verdict accuracy (+0.38), and Brier
+(-0.11); Opus separates on the same three by more. This is the result the project was built to
+test, and on the earlier 14-case corpus none of it cleared the intervals. The difference is
+sample size, not a change to the models: a threshold cannot tell a package upgrade from an
+attacker, so it sits at 0.475 verdict accuracy and reports a constant 0.5 confidence, which is
+exactly what its Brier score of 0.250 measures.
 
-Running it against the three comparisons this repo actually made:
+**Opus beats Haiku on one thing: the escalation gate.** Escalation F1 goes 0.870 to 0.980,
+and the paired interval [+0.005, +0.234] clears zero. Opus misses none of the 24 cases that
+should escalate and raises one false alarm; Haiku misses four. On verdict accuracy, severity,
+and Brier the two models are inside each other's noise. So the case for paying roughly eight
+times as much per incident is specifically that it does not drop incidents, not that it
+understands them better across the board.
 
-| comparison | metric | delta | 95% CI of delta | verdict |
-| --- | --- | --- | --- | --- |
-| haiku, playbook fix | escalation F1 | +0.161 | [+0.000, +0.444] | overlaps zero |
-| haiku, playbook fix | verdict accuracy | +0.071 | [+0.000, +0.214] | overlaps zero |
-| haiku, playbook fix | Brier | -0.028 | [-0.079, +0.006] | overlaps zero |
-| haiku vs opus | escalation F1 | +0.125 | [+0.000, +0.333] | overlaps zero |
-| haiku vs opus | severity exact | +0.286 | [+0.071, +0.500] | **separated** |
-| haiku vs opus | technique F1 | -0.141 | [-0.345, +0.075] | overlaps zero |
-| haiku v1 vs opus | escalation F1 | +0.286 | [+0.067, +0.636] | **separated** |
-| haiku v1 vs opus | severity exact | +0.357 | [+0.143, +0.643] | **separated** |
+**Neither model matches the baseline's technique score, and that one is the metric's fault.**
+Technique F1 is 0.959 for the baseline against 0.817 for Haiku and 0.623 for Opus, and the gap
+is statistically clear. But recall runs the other way: Opus finds 0.917 of the labelled
+techniques, more than the baseline in absolute terms. It loses on precision because it adds
+techniques the labels do not carry, and most of the additions are defensible, `T1595 Active
+Scanning` on a 404 sweep, `T1005 Data from Local System` on a `mysqldump --all-databases`. The
+labels omit those because they were written to a convention: minimal sets on true positives,
+empty sets on false positives even when a technique was observed. **So `technique_f1` measures
+agreement with that convention, not correctness**, and a bigger, more thorough model is
+penalised precisely for being more thorough. The honest fix is multi-annotator labels or credit
+for defensible supersets, and neither is in this repo.
 
-**Two things survive, and they are both about model capability, not prompting.** Opus is
-better at severity than Haiku, and against the original playbook it is better at escalation.
-Everything else in this repo is inside the noise of a fourteen-case corpus.
-
-That includes the result this project was built to produce. Writing "escalate every
-`inconclusive` verdict" into the playbook moved Haiku's escalation F1 from 0.714 to 0.875 and
-cut misses from three to one, and I first wrote that up as the fix working decisively. The
-paired bootstrap puts the interval at [+0.000, +0.444]. Two cases changed. The direction is
-right, the mechanism is plausible, and the corpus cannot establish it. It stays in the README
-as a hypothesis worth testing on more data, not as a finding.
-
-The same correction applies in the other direction. Opus's technique F1 looks 0.141 lower, but
-that interval is [-0.345, +0.075] and it is not established either. On inspection the gap is
-not really about ATT&CK at all: Opus's recall is 1.000, and it loses precision by adding
-techniques the labels do not carry, most of which are defensible. It tags the scanner sweep
-`T1595 Active Scanning`, the pkexec crash `T1068 Exploitation for Privilege Escalation`, and
-the `mysqldump --all-databases` staging `T1005 Data from Local System`. The labels omit those
-because of a convention I chose, minimal sets on true positives and empty sets on false
-positives, so **`technique_f1` partly measures agreement with that convention rather than
-correctness.** Fixing it needs multi-annotator labels or credit for defensible supersets, and
-neither is in this repo.
-
-What is left that is solid: every LLM run beats the threshold baseline on verdict accuracy by
-a wide margin, and the baseline's Brier score of 0.250 is what a constant 0.5 confidence
-looks like. Opus escalates all fourteen cases correctly with a degenerate interval, because
-there is no case for the bootstrap to resample into an error. That is a real ceiling on this
-corpus and also evidence that the corpus is too easy for it.
+**Severity is the one place the corpus still cannot separate the models from the baseline.**
+Exact-severity deltas against the baseline overlap zero for both. Opus reaches 0.725 and lands
+every case within one band, which is real improvement, but not enough of it to clear the
+interval at this sample size.
 
 ## Cost
 
-Opus costs 7x per incident, $0.051 against $0.007, and 3x the latency, 32 seconds against 10.
-The one difference the corpus can actually establish, severity accuracy, is not the metric a
-SOC lives or dies by. If a missed escalation is the expensive failure, neither model is shown
-to be better than the other at avoiding one, and the cheap one is the reasonable default until
-a larger corpus says otherwise.
-
-Reproduce with:
-
-```bash
-python -m soc.cli eval --analyst claude
-```
-
-```bash
-python -m soc.cli eval --analyst claude --model claude-opus-5 --out eval/scores-opus.json
-```
-
-```bash
-python -m soc.cli compare eval/scores-haiku-before.json eval/scores.json
-```
+Opus costs about 8x per incident, $0.049 against $0.006, and roughly 3x the latency, 29 seconds
+against 10. The corpus establishes one thing it buys: a near-perfect escalation gate. For a
+queue where a missed escalation is the expensive failure, that is the trade most teams would
+take. For bulk noise-tuning where the usual answer is "this is fine," Haiku already beats the
+baseline decisively at a tenth of the price. The full runs cost about $0.25 (Haiku) and $2.00
+(Opus).
 
 Per-case detail lands in the scores file, showing exactly which cases each analyst got wrong
-and what it said. Four runs are committed so they are diffable: `eval/scores-rules.json`,
-`eval/scores-haiku-before.json` (Haiku, original playbook), `eval/scores.json` (Haiku,
-revised), and `eval/scores-opus.json` (Opus 5). Fourteen incidents cost nine cents on Haiku
-and 71 cents on Opus.
+and what it said. Committed runs: `eval/scores-rules.json`, `eval/scores.json` (Haiku), and
+`eval/scores-opus.json` (Opus 5), all on the current 40-case corpus.
 
 ## Design notes
 
@@ -309,13 +287,13 @@ part of the system and the metric that watches it is `correlation_purity`.
 
 ## Limits
 
-Fourteen cases is a small corpus, and I wrote both the alerts and the labels, so it measures
-agreement with one analyst's judgement rather than ground truth from a real environment. The
-bootstrap intervals make the size problem visible rather than solving it: most of the
-differences this repo set out to measure sit inside them. Treat the numbers as a regression
-harness for changes to the prompt, model, or enrichment, not as evidence about production
-performance. Feeding it real labelled alerts is the obvious next step and nothing in the
-pipeline needs to change to do it.
+Forty cases is still a small corpus, and I wrote both the alerts and the labels, so it measures
+agreement with one analyst's judgement rather than ground truth from a real environment.
+Expanding from fourteen to forty roughly halved the intervals and turned the headline result,
+that the models beat the threshold baseline, from "cannot tell" into an established finding; it
+did not make the corpus representative. Treat the numbers as a regression harness for changes to
+the prompt, model, or enrichment, not as evidence about production performance. Feeding it real
+labelled alerts is the obvious next step and nothing in the pipeline needs to change to do it.
 
 Single annotator is the harder half of that problem. The technique metric already shows what
 it costs: a defensible ATT&CK tag scores as an error because it is absent from labels one

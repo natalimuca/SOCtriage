@@ -120,8 +120,8 @@ def test_rules_baseline_holds():
     metrics = evaluate(analyst="rules")["metrics"]
     floors = {
         "correlation_purity": 1.0,
-        "escalation_f1": 0.80,
-        "verdict_accuracy": 0.50,
+        "escalation_f1": 0.55,
+        "verdict_accuracy": 0.40,
         "technique_f1": 0.90,
     }
     below = {k: metrics[k] for k, floor in floors.items() if metrics[k] < floor - 1e-9}

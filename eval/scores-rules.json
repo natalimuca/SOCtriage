@@ -1,20 +1,20 @@
 {
   "analyst": "rules",
-  "cases_labelled": 14,
-  "incidents_produced": 14,
+  "cases_labelled": 40,
+  "incidents_produced": 40,
   "metrics": {
     "correlation_purity": 1.0,
-    "verdict_accuracy": 0.5,
-    "severity_exact": 0.5714285714285714,
-    "severity_within_one": 0.7142857142857143,
-    "escalation_precision": 0.8571428571428571,
-    "escalation_recall": 0.75,
-    "escalation_f1": 0.7999999999999999,
-    "escalation_false_alarms": 1,
-    "escalation_misses": 2,
-    "technique_precision": 0.8823529411764706,
-    "technique_recall": 0.9375,
-    "technique_f1": 0.9090909090909091,
+    "verdict_accuracy": 0.475,
+    "severity_exact": 0.5,
+    "severity_within_one": 0.65,
+    "escalation_precision": 0.8125,
+    "escalation_recall": 0.5416666666666666,
+    "escalation_f1": 0.65,
+    "escalation_false_alarms": 3,
+    "escalation_misses": 11,
+    "technique_precision": 0.9459459459459459,
+    "technique_recall": 0.9722222222222222,
+    "technique_f1": 0.9589041095890412,
     "brier": 0.25,
     "latency_p50_ms": 0,
     "latency_p95_ms": 0,
@@ -23,19 +23,19 @@
   },
   "intervals": {
     "escalation_f1": {
-      "low": 0.5,
-      "high": 1.0
+      "low": 0.4444444444444444,
+      "high": 0.8085106382978723
     },
     "verdict_accuracy": {
-      "low": 0.2857142857142857,
-      "high": 0.7857142857142857
+      "low": 0.325,
+      "high": 0.625
     },
     "severity_exact": {
-      "low": 0.2857142857142857,
-      "high": 0.7857142857142857
+      "low": 0.35,
+      "high": 0.65
     },
     "technique_f1": {
-      "low": 0.7692307692307693,
+      "low": 0.9019607843137256,
       "high": 1.0
     },
     "brier": {
@@ -62,6 +62,40 @@
       "cost_usd": 0.0
     },
     {
+      "case": "ansible_run",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "high",
+      "severity_expected": "informational",
+      "escalate": true,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on db01, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "apt_remove",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "2 alerts on app02, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
       "case": "apt_upgrade_fim",
       "pure": true,
       "verdict": "inconclusive",
@@ -75,6 +109,23 @@
       "techniques": [],
       "techniques_expected": [],
       "summary": "4 alerts on app02, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "backup_cron_ok",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "high",
+      "severity_expected": "informational",
+      "escalate": true,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "2 alerts on db01, max rule level 7",
       "latency_ms": 0,
       "cost_usd": 0.0
     },
@@ -140,6 +191,23 @@
       "cost_usd": 0.0
     },
     {
+      "case": "certbot_renewal",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on web01, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
       "case": "cron_persistence",
       "pure": true,
       "verdict": "true_positive",
@@ -160,6 +228,103 @@
         "T1105"
       ],
       "summary": "2 alerts on web01, max rule level 10",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "dev_git_push",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "2 alerts on ci02, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "dns_tunnel",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1048.003"
+      ],
+      "techniques_expected": [
+        "T1048.003"
+      ],
+      "summary": "2 alerts on app02, max rule level 10",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "docker_pull",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "2 alerts on ci02, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "dormant_login",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "medium",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078.002"
+      ],
+      "techniques_expected": [
+        "T1078.002"
+      ],
+      "summary": "1 alerts on dc01, max rule level 3",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "encoded_command",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "medium",
+      "severity_expected": "medium",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1027"
+      ],
+      "techniques_expected": [
+        "T1027"
+      ],
+      "summary": "1 alerts on app02, max rule level 8",
       "latency_ms": 0,
       "cost_usd": 0.0
     },
@@ -206,6 +371,23 @@
       "cost_usd": 0.0
     },
     {
+      "case": "kernel_upgrade",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on app02, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
       "case": "lateral_ssh",
       "pure": true,
       "verdict": "inconclusive",
@@ -225,6 +407,145 @@
         "T1098.004"
       ],
       "summary": "2 alerts on db01, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "log_tamper",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1070.002"
+      ],
+      "techniques_expected": [
+        "T1070.002"
+      ],
+      "summary": "2 alerts on web01, max rule level 9",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "logrotate",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "2 alerts on app02, max rule level 9",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "mail_relay_abuse",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "medium",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1114.002"
+      ],
+      "techniques_expected": [
+        "T1114.002"
+      ],
+      "summary": "2 alerts on mail01, max rule level 8",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "mass_encrypt",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "critical",
+      "severity_expected": "critical",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1486"
+      ],
+      "techniques_expected": [
+        "T1486"
+      ],
+      "summary": "3 alerts on db01, max rule level 13",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "monitoring_probe",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "low",
+      "severity_expected": "low",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "2 alerts on web01, max rule level 5",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "new_geo_login",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "medium",
+      "severity_expected": "medium",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078"
+      ],
+      "techniques_expected": [
+        "T1078"
+      ],
+      "summary": "1 alerts on vpn01, max rule level 8",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "offhours_dbdump",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "informational",
+      "severity_expected": "medium",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1005"
+      ],
+      "techniques_expected": [
+        "T1005"
+      ],
+      "summary": "1 alerts on db01, max rule level 3",
       "latency_ms": 0,
       "cost_usd": 0.0
     },
@@ -271,6 +592,29 @@
       "cost_usd": 0.0
     },
     {
+      "case": "payload_download_exec",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1105",
+        "T1204.002"
+      ],
+      "techniques_expected": [
+        "T1105",
+        "T1204.002"
+      ],
+      "summary": "2 alerts on app02, max rule level 10",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
       "case": "pkexec_privesc",
       "pure": true,
       "verdict": "true_positive",
@@ -292,6 +636,29 @@
       "cost_usd": 0.0
     },
     {
+      "case": "reverse_shell",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "critical",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1059.004",
+        "T1071.001"
+      ],
+      "techniques_expected": [
+        "T1059.004",
+        "T1071.001"
+      ],
+      "summary": "3 alerts on app02, max rule level 12",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
       "case": "scanner_404s",
       "pure": true,
       "verdict": "true_positive",
@@ -307,6 +674,153 @@
       ],
       "techniques_expected": [],
       "summary": "3 alerts on web01, max rule level 10",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "service_crashloop",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "informational",
+      "severity_expected": "low",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on mail01, max rule level 4",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "shadow_read",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "critical",
+      "severity_expected": "critical",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1003.008"
+      ],
+      "techniques_expected": [
+        "T1003.008"
+      ],
+      "summary": "2 alerts on dc01, max rule level 12",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "single_binary_change",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "medium",
+      "severity_expected": "medium",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1554"
+      ],
+      "techniques_expected": [
+        "T1554"
+      ],
+      "summary": "1 alerts on app02, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "sudo_group_add",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "inconclusive",
+      "verdict_ok": true,
+      "severity": "medium",
+      "severity_expected": "medium",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1098"
+      ],
+      "techniques_expected": [
+        "T1098"
+      ],
+      "summary": "1 alerts on app02, max rule level 8",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "sudoers_backdoor",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1136.001",
+        "T1548.003"
+      ],
+      "techniques_expected": [
+        "T1136.001",
+        "T1548.003"
+      ],
+      "summary": "2 alerts on web01, max rule level 8",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "systemd_persistence",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "high",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1543.002"
+      ],
+      "techniques_expected": [
+        "T1543.002"
+      ],
+      "summary": "2 alerts on db01, max rule level 8",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "vpn_bruteforce_success",
+      "pure": true,
+      "verdict": "true_positive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": true,
+      "severity": "high",
+      "severity_expected": "high",
+      "escalate": true,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1110.001",
+        "T1133"
+      ],
+      "techniques_expected": [
+        "T1110.001",
+        "T1133"
+      ],
+      "summary": "4 alerts on vpn01, max rule level 10",
       "latency_ms": 0,
       "cost_usd": 0.0
     },

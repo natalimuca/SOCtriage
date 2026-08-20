@@ -32,3 +32,31 @@ victim01:
   role: lab host driven by the scene generator
   owner: security
   tags: [lab]
+
+dc01:
+  criticality: crown_jewel
+  exposure: internal
+  role: active directory domain controller
+  owner: identity
+  tags: [ldap, kerberos, pii]
+
+mail01:
+  criticality: high
+  exposure: dmz
+  role: smtp and imap gateway
+  owner: platform
+  tags: [postfix, dovecot]
+
+vpn01:
+  criticality: high
+  exposure: internet
+  role: remote access vpn concentrator
+  owner: network
+  tags: [openvpn, edge]
+
+ci02:
+  criticality: low
+  exposure: internal
+  role: secondary build runner
+  owner: developer-experience
+  tags: [jenkins, ephemeral]

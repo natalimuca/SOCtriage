@@ -120,5 +120,223 @@
       "T1136.001"
     ],
     "note": "Account creation at 02:03 with no session, no sudo, and no provisioning context in the data."
+  },
+  "reverse_shell": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1059.004",
+      "T1071.001"
+    ],
+    "note": "A web service account spawns bash with a network redirection to an external host."
+  },
+  "shadow_read": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "critical",
+    "techniques": [
+      "T1003.008"
+    ],
+    "note": "A non-root service account reads /etc/shadow on the domain controller."
+  },
+  "log_tamper": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1070.002"
+    ],
+    "note": "Authentication logs are truncated shortly after a privileged session, hiding activity."
+  },
+  "payload_download_exec": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1105",
+      "T1204.002"
+    ],
+    "note": "A remote binary is fetched to /tmp, made executable, and run within seconds."
+  },
+  "systemd_persistence": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1543.002"
+    ],
+    "note": "A new systemd service unit is written that launches a script from /tmp on boot."
+  },
+  "dns_tunnel": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1048.003"
+    ],
+    "note": "Sustained high-volume TXT lookups to a single external domain, consistent with DNS tunnelling."
+  },
+  "mass_encrypt": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "critical",
+    "techniques": [
+      "T1486"
+    ],
+    "note": "Thousands of files renamed with a new extension in minutes on the database host."
+  },
+  "vpn_bruteforce_success": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1110.001",
+      "T1133"
+    ],
+    "note": "A run of failed VPN authentications from one address ends in a success at 00:24."
+  },
+  "mail_relay_abuse": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "medium",
+    "techniques": [
+      "T1114.002"
+    ],
+    "note": "An authenticated account sends thousands of messages to external recipients in minutes."
+  },
+  "sudoers_backdoor": {
+    "verdict": "true_positive",
+    "escalate": true,
+    "severity": "high",
+    "techniques": [
+      "T1548.003",
+      "T1136.001"
+    ],
+    "note": "A NOPASSWD entry for a freshly created account is written into /etc/sudoers.d."
+  },
+  "certbot_renewal": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "Certificate files change under /etc/letsencrypt during the scheduled renewal window."
+  },
+  "logrotate": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "Log files rotate and shrink at 00:03; the size reduction is logrotate, not tampering."
+  },
+  "apt_remove": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "A package is removed and its files deleted during a scheduled maintenance window."
+  },
+  "ansible_run": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "Config management pushes a batch of file changes from the automation host during business hours."
+  },
+  "dev_git_push": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "A developer on the office network authenticates and runs git operations on the build host."
+  },
+  "backup_cron_ok": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "The nightly backup job runs, writes an archive, and exits zero. Expected operations."
+  },
+  "docker_pull": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "Image layers are written under /var/lib/docker during a normal build pull."
+  },
+  "kernel_upgrade": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "informational",
+    "techniques": [],
+    "note": "Boot files change during a kernel package upgrade, alongside the dpkg record that explains them."
+  },
+  "service_crashloop": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "low",
+    "techniques": [],
+    "note": "A mail service crashes and is restarted repeatedly. An availability fault, not an attacker."
+  },
+  "monitoring_probe": {
+    "verdict": "false_positive",
+    "escalate": false,
+    "severity": "low",
+    "techniques": [],
+    "note": "A monitoring system health-checks an endpoint on a fixed interval from the internal poller."
+  },
+  "offhours_dbdump": {
+    "verdict": "inconclusive",
+    "escalate": true,
+    "severity": "medium",
+    "techniques": [
+      "T1005"
+    ],
+    "note": "A full database dump runs at 02:36 by a service account with no scheduled job visible for it."
+  },
+  "sudo_group_add": {
+    "verdict": "inconclusive",
+    "escalate": true,
+    "severity": "medium",
+    "techniques": [
+      "T1098"
+    ],
+    "note": "An existing account is added to the sudo group with no change ticket or session context in the data."
+  },
+  "new_geo_login": {
+    "verdict": "inconclusive",
+    "escalate": true,
+    "severity": "medium",
+    "techniques": [
+      "T1078"
+    ],
+    "note": "A valid account authenticates from a country it has never connected from before, nothing else attached."
+  },
+  "single_binary_change": {
+    "verdict": "inconclusive",
+    "escalate": true,
+    "severity": "medium",
+    "techniques": [
+      "T1554"
+    ],
+    "note": "One system binary changes checksum with no package-manager record in the same window to explain it."
+  },
+  "dormant_login": {
+    "verdict": "inconclusive",
+    "escalate": true,
+    "severity": "medium",
+    "techniques": [
+      "T1078.002"
+    ],
+    "note": "An account dormant for months authenticates successfully at 01:36; unusual but not proof of misuse."
+  },
+  "encoded_command": {
+    "verdict": "inconclusive",
+    "escalate": true,
+    "severity": "medium",
+    "techniques": [
+      "T1027"
+    ],
+    "note": "A base64-encoded shell command runs under an admin session; could be tooling or an attempt to hide intent."
   }
 }
