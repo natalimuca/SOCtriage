@@ -18,6 +18,20 @@ PRICING = {
 }
 
 
+NO_KEY_MESSAGE = """The claude analyst needs an Anthropic API key.
+
+Create one at https://console.anthropic.com under Settings, then API keys, and write it to
+.env in the repo root:
+
+    ANTHROPIC_API_KEY=sk-ant-...
+
+Until then, --analyst rules runs the threshold baseline and needs no key."""
+
+
+class MissingCredentials(RuntimeError):
+    pass
+
+
 class Analyst(ABC):
     name: str
 
@@ -83,6 +97,8 @@ class ClaudeAnalyst(Analyst):
     name = "claude"
 
     def __init__(self, model: str | None = None, client: anthropic.Anthropic | None = None):
+        if client is None and not settings.has_credentials:
+            raise MissingCredentials(NO_KEY_MESSAGE)
         self.model = model or settings.model
         self.client = client or anthropic.Anthropic()
 

@@ -14,6 +14,7 @@ from .pipeline import Pipeline
 from .report import incident_report, run_summary
 from .schema import Result
 from .sources import build as build_source
+from .triage import MissingCredentials
 from .triage import build as build_analyst
 
 app = typer.Typer(add_completion=False, help="LLM alert triage over a Wazuh SIEM.")
@@ -26,6 +27,14 @@ SEVERITY_COLOR = {
     "low": "cyan",
     "informational": "dim",
 }
+
+
+def build_checked(name: str, model: str | None = None):
+    try:
+        return build_analyst(name, model=model)
+    except MissingCredentials as exc:
+        console.print(f"[red]{exc}[/]")
+        raise typer.Exit(code=1)
 
 
 def show(results: list[Result]) -> None:
@@ -80,7 +89,7 @@ def run(
 ):
     """Triage a batch of alerts and write incident reports."""
     src = build_source(source, path=path) if source == "jsonl" else build_source(source)
-    pipeline = Pipeline(src, build_analyst(analyst, model=model))
+    pipeline = Pipeline(src, build_checked(analyst, model=model))
     results = pipeline.run(limit=limit)
     if not results:
         console.print("no alerts")
@@ -97,7 +106,7 @@ def watch(
     out: str = typer.Option(str(OUT)),
 ):
     """Poll the Wazuh indexer and triage new alerts as they arrive."""
-    pipeline = Pipeline(build_source("wazuh"), build_analyst(analyst))
+    pipeline = Pipeline(build_source("wazuh"), build_checked(analyst))
     since = datetime.now(timezone.utc)
     console.print(f"watching {settings.indexer_url} from {since.isoformat()}")
     while True:
@@ -119,6 +128,8 @@ def evaluate(
 ):
     """Score an analyst against the labelled corpus."""
     from .score import evaluate as run_eval
+
+    build_checked(analyst, model=model)
 
     report = run_eval(analyst=analyst, corpus=corpus, labels=labels, model=model)
     Path(out).write_text(json.dumps(report, indent=2), encoding="utf-8")
