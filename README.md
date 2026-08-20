@@ -1,5 +1,7 @@
 # SOCtriage
 
+[![ci](https://github.com/natalimuca/SOCtriage/actions/workflows/ci.yml/badge.svg)](https://github.com/natalimuca/SOCtriage/actions/workflows/ci.yml)
+
 Alert triage for a Wazuh SIEM. Alerts are correlated into incidents, enriched with asset and
 rarity context, and sent to Claude for a verdict, a severity, an ATT&CK mapping tied to
 evidence, and an escalation decision. Every run is scored against a labelled corpus and

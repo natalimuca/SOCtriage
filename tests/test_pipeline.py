@@ -76,3 +76,17 @@ def test_prf():
     assert prf(0, 0, 0) == {"precision": 0.0, "recall": 0.0, "f1": 0.0}
     assert prf(2, 2, 0)["precision"] == 0.5
     assert prf(2, 0, 2)["recall"] == 0.5
+
+
+def test_rules_baseline_holds():
+    from soc.score import evaluate
+
+    metrics = evaluate(analyst="rules")["metrics"]
+    floors = {
+        "correlation_purity": 1.0,
+        "escalation_f1": 0.80,
+        "verdict_accuracy": 0.50,
+        "technique_f1": 0.90,
+    }
+    below = {k: metrics[k] for k, floor in floors.items() if metrics[k] < floor - 1e-9}
+    assert not below, f"baseline regressed: {below}"
