@@ -25,10 +25,11 @@ alerts one at a time.
 
 ![Triage output](docs/triage-run.png)
 
-Same alerts, after the pipeline. Four incidents, two worth escalating, 4.8 cents, and the
-first line names the account, the source address, the privilege escalation, the backdoor
-account and its UID, and the persistence mechanism. That is 118 alerts collapsed into one
-paragraph a human can act on.
+Same alerts, after the pipeline. Twelve incidents, nine worth escalating, 16 cents, each one a
+paragraph a human can act on. The second row is the tell: the model reports the attacker
+escalating to root and creating a UID-0 backdoor *while separating out `natali`, a legitimate
+admin doing routine work on the same host in the same window*. A rule threshold cannot make
+that distinction; it is the difference the evaluation measures.
 
 ## Flow
 
@@ -155,6 +156,12 @@ summarises and is queryable from the same dashboard:
 ```bash
 python -m soc.cli run --source wazuh --analyst claude --sink indexer
 ```
+
+![Triage verdicts in the Wazuh dashboard](docs/wazuh-triage.png)
+
+Filtered to `triage.escalate: true`, the `soc-triage` index is the escalation queue: nine
+incidents, each carrying the model's verdict, severity, and narrative as columns an analyst can
+sort and search, inside the SIEM's own UI rather than a text file.
 
 The **webhook** sink posts escalations to a Slack-compatible URL. Only incidents the analyst
 escalated are sent, so the channel is a queue of things a human should look at rather than a
