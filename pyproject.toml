@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
+guide = ["pandas>=2.0"]
 
 [project.scripts]
 soc = "soc.cli:app"

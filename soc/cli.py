@@ -223,6 +223,39 @@ def agreement(
 
 
 @app.command()
+def guide(
+    path: str = typer.Argument(..., help="GUIDE CSV (GUIDE_Test.csv or GUIDE_Train.csv)"),
+    analyst: str = typer.Option("rules"),
+    model: str = typer.Option(None),
+    sample: int = typer.Option(60, help="incidents to sample, balanced across grades"),
+    out: str = typer.Option("eval/scores-guide.json"),
+):
+    """Score an analyst against Microsoft's GUIDE corpus, whose labels are real analyst grades."""
+    from .guide import load
+    from .score import evaluate_incidents
+
+    build_checked(analyst, model=model)
+    with console.status("loading and sampling GUIDE incidents"):
+        incidents, labels = load(path, sample_incidents=sample)
+    console.print(f"{len(incidents)} incidents sampled from GUIDE, grades from real analysts")
+
+    report = evaluate_incidents(incidents, labels, analyst=analyst, model=model)
+    Path(out).write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+    table = Table(title=f"{report['analyst']} vs GUIDE analyst labels ({report['incidents_produced']} incidents)")
+    table.add_column("metric")
+    table.add_column("value", justify="right")
+    table.add_column("95% CI", justify="right")
+    for key in ("verdict_accuracy", "escalation_f1", "escalation_precision", "escalation_recall", "brier", "cost_per_incident_usd"):
+        v = report["metrics"].get(key)
+        ci = report["intervals"].get(key)
+        table.add_row(key, f"{v:.3f}" if isinstance(v, float) else str(v), f"[{ci['low']:.3f}, {ci['high']:.3f}]" if ci else "")
+    console.print(table)
+    console.print("GUIDE has no severity or inconclusive grade; verdict and escalation are the grounded metrics")
+    console.print(f"scores written to {out}")
+
+
+@app.command()
 def stack(action: str = typer.Argument(..., help="up, down, status, or logs")):
     """Control the Wazuh docker stack."""
     docker = ROOT / "docker"

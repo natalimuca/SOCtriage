@@ -208,3 +208,33 @@ def test_agreement_reports_real_disagreement():
     assert report["cases"] == 40
     for c in report["contested"]:
         assert c["label_verdict"] != c["model_verdict"]
+
+
+def test_guide_adapter_groups_and_maps(tmp_path):
+    pd = pytest.importorskip("pandas")
+
+    from soc.guide import GRADE_TO_VERDICT, load
+
+    rows = []
+    for iid, grade in enumerate(["TruePositive", "BenignPositive", "FalsePositive"]):
+        for a in range(2):
+            rows.append(
+                dict(
+                    IncidentId=iid, Timestamp=f"2024-03-1{iid}T0{a}:00:00Z",
+                    DetectorId=f"d{a}", AlertTitle=f"alert {grade}", Category="Execution",
+                    MitreTechniques="T1059.001" if grade == "TruePositive" else "",
+                    IncidentGrade=grade, DeviceName=f"host{iid}",
+                )
+            )
+    csv = tmp_path / "guide.csv"
+    pd.DataFrame(rows).to_csv(csv, index=False)
+
+    incidents, labels = load(str(csv), sample_incidents=3)
+    assert len(incidents) == 3
+    for inc in incidents:
+        assert len(inc.alerts) == 2  # grouped by IncidentId
+        assert labels[inc.id]["verdict"] in GRADE_TO_VERDICT.values()
+    # the true-positive incident escalates, the benign/false ones do not
+    verdicts = {labels[i.id]["verdict"] for i in incidents}
+    assert verdicts == {"true_positive", "false_positive"}
+    assert sum(labels[i.id]["escalate"] for i in incidents) == 1

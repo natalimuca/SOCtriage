@@ -239,3 +239,51 @@ def agreement(labels: str = "eval/labels.json", scores: str = "eval/scores-opus.
         "escalation_agreement": ae,
         "contested": contested,
     }
+
+
+def evaluate_incidents(incidents, labels: dict, analyst: str = "rules", model: str | None = None) -> dict:
+    """Score an analyst against pre-grouped incidents that already carry ground-truth labels
+    (used for external corpora like GUIDE, where correlation is given, not inferred)."""
+    from .enrich import Baseline, enrich, load_assets, load_flagged
+
+    engine = build_analyst(analyst, model=model)
+    assets, flagged = load_assets(), load_flagged()
+    baseline = Baseline(path=Path("eval/guide-baseline.json"))
+
+    rows = []
+    for incident in incidents:
+        expected = labels.get(incident.id)
+        if expected is None:
+            continue
+        enrich(incident, assets, baseline, flagged)
+        result = engine.triage(incident)
+        t = result.triage
+        rows.append(
+            {
+                "case": incident.id,
+                "pure": True,
+                "verdict": t.verdict,
+                "verdict_expected": expected["verdict"],
+                "verdict_ok": t.verdict == expected["verdict"],
+                "severity": t.severity,
+                "severity_expected": expected["severity"],
+                "escalate": t.escalate,
+                "escalate_expected": expected["escalate"],
+                "confidence": t.confidence,
+                "techniques": sorted({x.id for x in t.techniques}),
+                "techniques_expected": sorted(expected["techniques"]),
+                "summary": t.summary,
+                "latency_ms": result.latency_ms,
+                "cost_usd": result.cost_usd,
+            }
+        )
+
+    counted = [counters(r) for r in rows]
+    return {
+        "analyst": rows and engine.name or analyst,
+        "cases_labelled": len(labels),
+        "incidents_produced": len(rows),
+        "metrics": aggregate(counted) if counted else {},
+        "intervals": intervals(counted) if counted else {},
+        "cases": sorted(rows, key=lambda r: r["case"]),
+    }

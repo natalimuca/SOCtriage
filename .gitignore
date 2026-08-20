@@ -8,3 +8,7 @@ out/
 .pytest_cache/
 data/baseline.json
 eval/baseline.json
+
+# GUIDE downloads and score artifacts
+eval/GUIDE_*.csv
+eval/guide-baseline.json
