@@ -39,10 +39,10 @@ generator container ──► /var/log/lab/*.log ──► wazuh.manager (decode
                                                      ▼
                                               wazuh.indexer  ◄── WazuhSource (REST)
                                                                       │
-                                          correlate ──► enrich ──► triage ──► report
-                                          (per host,   (asset,     (Claude    (markdown
-                                           time gap)    rarity,     or rule     + JSONL)
-                                                        ATT&CK)     baseline)
+                                          correlate ──► enrich ──► triage ──► report + sinks
+                                          (per host,   (asset,     (Claude    (markdown,
+                                           time gap)    rarity,     or rule     indexer,
+                                                        ATT&CK)     baseline)   webhook)
 ```
 
 `JsonlSource` swaps in for `WazuhSource` behind the same interface, which is how the
@@ -138,9 +138,36 @@ python -m soc.cli watch --interval 60
 ```
 
 Both write one markdown report per incident, a `summary.md` ranked by severity, and
-`results.jsonl` into `out/`. Compliance and inventory alerts (`sca`, `rootcheck`,
+`results.jsonl` into `out/`, and both accept `--sink` to push verdicts to the Wazuh indexer or a
+webhook (see Integrations). Compliance and inventory alerts (`sca`, `rootcheck`,
 `vulnerability-detector`, `syscollector`) are excluded by default: a fresh Wazuh manager
 produces about two hundred of them at first boot and they are a posture report, not events.
+
+## Integrations
+
+Triage output does not only land in `out/`. Two sinks push it where a SOC would actually consume
+it, wired in with `--sink` (repeatable) on `run` and `watch`.
+
+The **indexer** sink writes each verdict back to the Wazuh indexer as a document in a
+`soc-triage` index, keyed by incident id, so the model's conclusion sits alongside the alerts it
+summarises and is queryable from the same dashboard:
+
+```bash
+python -m soc.cli run --source wazuh --analyst claude --sink indexer
+```
+
+The **webhook** sink posts escalations to a Slack-compatible URL. Only incidents the analyst
+escalated are sent, so the channel is a queue of things a human should look at rather than a
+copy of every alert. Each post carries a rendered `text` field and the full structured verdict
+under `soc_triage` for downstream automation:
+
+```bash
+SOC_WEBHOOK_URL=https://hooks.slack.com/services/...   python -m soc.cli watch --analyst claude --sink webhook --sink indexer
+```
+
+A sink that fails is logged and skipped, never allowed to drop a triage result. New sinks
+implement one `emit(result)` method behind `soc/sinks/base.py`, the same shape as the alert
+sources.
 
 ## Evaluation
 

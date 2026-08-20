@@ -13,6 +13,7 @@ from .config import OUT, ROOT, settings
 from .pipeline import Pipeline
 from .report import incident_report, run_summary
 from .schema import Result
+from .sinks import build as build_sink
 from .sources import build as build_source
 from .triage import MissingCredentials
 from .triage import build as build_analyst
@@ -35,6 +36,18 @@ def build_checked(name: str, model: str | None = None):
     except MissingCredentials as exc:
         console.print(f"[red]{exc}[/]")
         raise typer.Exit(code=1)
+
+
+def build_sinks(names: list[str] | None):
+    sinks = []
+    for name in names or []:
+        try:
+            sinks.append(build_sink(name))
+            console.print(f"[dim]sink: {name}[/]")
+        except (ValueError, Exception) as exc:
+            console.print(f"[red]sink {name} unavailable: {exc}[/]")
+            raise typer.Exit(code=1)
+    return sinks
 
 
 def show(results: list[Result]) -> None:
@@ -86,10 +99,11 @@ def run(
     model: str = typer.Option(None),
     limit: int = typer.Option(500),
     out: str = typer.Option(str(OUT)),
+    sink: list[str] = typer.Option(None, help="indexer and/or webhook; repeatable"),
 ):
     """Triage a batch of alerts and write incident reports."""
     src = build_source(source, path=path) if source == "jsonl" else build_source(source)
-    pipeline = Pipeline(src, build_checked(analyst, model=model))
+    pipeline = Pipeline(src, build_checked(analyst, model=model), sinks=build_sinks(sink))
     results = pipeline.run(limit=limit)
     if not results:
         console.print("no alerts")
@@ -104,9 +118,10 @@ def watch(
     interval: int = typer.Option(60),
     analyst: str = typer.Option("claude"),
     out: str = typer.Option(str(OUT)),
+    sink: list[str] = typer.Option(None, help="indexer and/or webhook; repeatable"),
 ):
     """Poll the Wazuh indexer and triage new alerts as they arrive."""
-    pipeline = Pipeline(build_source("wazuh"), build_checked(analyst))
+    pipeline = Pipeline(build_source("wazuh"), build_checked(analyst), sinks=build_sinks(sink))
     since = datetime.now(timezone.utc)
     console.print(f"watching {settings.indexer_url} from {since.isoformat()}")
     while True:

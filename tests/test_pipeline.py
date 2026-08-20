@@ -126,3 +126,55 @@ def test_rules_baseline_holds():
     }
     below = {k: metrics[k] for k, floor in floors.items() if metrics[k] < floor - 1e-9}
     assert not below, f"baseline regressed: {below}"
+
+
+def test_webhook_sink_filters_and_formats():
+    from soc.schema import Alert, Incident, Result, Triage
+    from soc.sinks.webhook import WebhookSink
+
+    sent = []
+
+    class FakeClient:
+        def post(self, url, json):
+            sent.append(json)
+
+            class R:
+                def raise_for_status(self_inner):
+                    pass
+
+            return R()
+
+    def make(escalate: bool, severity: str) -> Result:
+        a = alert(0)
+        inc = Incident(id="h-1", host="web01", started=a.timestamp, ended=a.timestamp, alerts=[a])
+        tri = Triage(
+            verdict="true_positive", confidence=0.8, severity=severity, escalate=escalate,
+            summary="s", narrative="n", techniques=[], containment=[], investigation=[], caveats=[],
+        )
+        return Result(incident=inc, triage=tri, analyst="rules")
+
+    sink = WebhookSink(url="http://x")
+    sink.client = FakeClient()
+
+    assert sink.emit(make(True, "high")) is True
+    assert sink.emit(make(False, "critical")) is False  # not escalated
+    assert sink.emit(make(True, "low")) is False  # below min_severity
+    assert len(sent) == 1
+    assert "text" in sent[0] and "soc_triage" in sent[0]
+
+
+def test_indexer_document_shape():
+    from soc.schema import Alert, Incident, Result, Triage
+    from soc.sinks.payload import document
+
+    a = alert(0)
+    inc = Incident(id="h-9", host="db01", started=a.timestamp, ended=a.timestamp, alerts=[a])
+    tri = Triage(
+        verdict="inconclusive", confidence=0.55, severity="medium", escalate=True,
+        summary="s", narrative="n", techniques=[], containment=[], investigation=["look"], caveats=["gap"],
+    )
+    doc = document(Result(incident=inc, triage=tri, analyst="claude"))
+    assert doc["incident"]["id"] == "h-9"
+    assert doc["triage"]["verdict"] == "inconclusive"
+    assert doc["triage"]["escalate"] is True
+    assert "@timestamp" in doc
