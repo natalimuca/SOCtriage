@@ -76,13 +76,36 @@ channel becomes a queue of things a human should look at rather than a copy of e
 
 ---
 
+## 4. Is it real, or did the model just get lucky?
+
+The three screens above show the system working. They do not, on their own, prove it works
+*better than sorting by rule level*. That is a separate question, and the harness answers it.
+
+![Paired bootstrap comparison](eval-compare.png)
+
+`soc compare` runs a paired bootstrap: resample the 40 cases, rerun both analysts on the same
+resample, and check whether the difference clears zero. Against the threshold baseline, Opus
+separates on escalation F1, verdict accuracy, and Brier score, the metrics a SOC actually lives
+on. It does **not** separate on severity (the corpus is too small to call that one), and it
+scores *worse* on technique F1, which is an artifact of the labelling convention rather than the
+model, explained in the README. Reporting the two that do not clear alongside the three that do
+is the point: the harness is built to knock down its own claims, not to flatter them.
+
+![Second-annotator agreement](eval-agreement.png)
+
+`soc agreement` addresses the obvious objection that one person wrote all the labels. It treats
+Opus, which never saw the labels, as an independent second annotator and measures how often it
+agrees. Cohen's κ is 0.85 on the verdict and 0.95 on the escalate decision, "almost perfect"
+agreement, which is some evidence the labels are not arbitrary. The four cases where they
+disagree are all on the `inconclusive` boundary, exactly where a real analyst would also
+hesitate, and they are named so a second human knows where to look first. This is a check, not
+a substitute for two human annotators, and the README says so.
+
 ## The arc
 
 Raw SIEM alerts (1) → the pipeline's triage, separating attacker from admin (2) → verdicts
-written back into the SIEM as a searchable escalation queue (3). That is the complete loop: the
-LLM does the tier-1 first pass and its output lands where a real SOC would consume it.
-
-What makes it a project rather than a demo is the layer these screenshots do not show: a
-40-case labelled corpus, a threshold baseline, bootstrap confidence intervals, and a paired
-significance test that establishes the models genuinely beat the baseline rather than just
-asserting it. Those numbers, and their limits, are in the [README](../README.md).
+written back into the SIEM as a searchable escalation queue (3) → an evaluation that establishes
+the difference is real, and is honest about what it cannot establish (4). That is the whole
+project: the LLM does the tier-1 first pass, its output lands where a real SOC would consume it,
+and there are numbers behind the claim rather than a vibe. The full results and their limits are
+in the [README](../README.md).
