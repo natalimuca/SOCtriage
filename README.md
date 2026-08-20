@@ -147,19 +147,21 @@ alerts all belong to one case, so a correlation bug cannot hide inside a triage 
 `--analyst rules` is severity from Wazuh rule level, escalation above level 10, techniques
 copied from whatever the firing rules asserted. It exists to be beaten:
 
-| metric | rules baseline | haiku 4.5 | haiku, revised playbook |
-| --- | --- | --- | --- |
-| escalation F1 | 0.800 | 0.714 | **0.875** |
-| escalation misses | 2 | 3 | **1** |
-| escalation false alarms | 1 | 1 | 1 |
-| verdict accuracy | 0.500 | 0.786 | **0.857** |
-| severity exact | **0.571** | 0.429 | 0.500 |
-| severity within one band | 0.714 | **0.857** | **0.857** |
-| technique F1 | **0.909** | **0.909** | 0.903 |
-| Brier | 0.250 | 0.165 | **0.138** |
-| correlation purity | 1.000 | 1.000 | 1.000 |
-| cost per incident | $0 | $0.006 | $0.007 |
-| latency p50 | 0 ms | 11,420 ms | 10,208 ms |
+| metric | rules baseline | haiku, first playbook | haiku, revised | opus 5, revised |
+| --- | --- | --- | --- | --- |
+| escalation F1 | 0.800 | 0.714 | 0.875 | **1.000** |
+| escalation misses | 2 | 3 | 1 | **0** |
+| escalation false alarms | 1 | 1 | 1 | **0** |
+| verdict accuracy | 0.500 | 0.786 | **0.857** | **0.857** |
+| severity exact | 0.571 | 0.429 | 0.500 | **0.786** |
+| severity within one band | 0.714 | 0.857 | 0.857 | **1.000** |
+| technique F1 | **0.909** | **0.909** | 0.903 | 0.762 |
+| Brier | 0.250 | 0.165 | 0.138 | **0.110** |
+| confidence when right | 0.500 | 0.891 | 0.883 | 0.834 |
+| confidence when wrong | 0.500 | 0.813 | 0.885 | **0.710** |
+| correlation purity | 1.000 | 1.000 | 1.000 | 1.000 |
+| cost per incident | $0 | $0.006 | $0.007 | $0.051 |
+| latency p50 | 0 ms | 11,420 ms | 10,208 ms | 31,736 ms |
 
 Correlation purity is identical by construction: correlation runs before either analyst is
 called, so it measures the pipeline, not the model.
@@ -199,18 +201,46 @@ to 0.138 as a side effect: told that `inconclusive` is a usable answer with a re
 attached, the model stopped forcing thin evidence into a confident `false_positive`.
 
 Telling it `critical` must stay rare, with an explicit "would you wake someone at 03:00" test,
-barely moved anything. Exact severity went 0.429 to 0.500 and the same four intrusions still
-come back `critical`. Severity inflation is not a gap in the instructions, so writing better
-instructions does not fix it. A rubric anchored to worked examples, or a calibration pass over
-labelled incidents, would be the next thing to try.
+barely moved anything. Exact severity went 0.429 to 0.500 and the same intrusions still come
+back `critical`. Whatever severity inflation is, it is not a gap in the instructions, because
+the instructions now say the opposite in as many words. Running the same playbook on a larger
+model, below, narrows it without closing it.
 
 Two failures survive at the revised playbook. `scanner_404s`, a 404 sweep with no successful
 response, still gets promoted to a true positive. `offhours_useradd`, an unexplained 02:00
 root account creation, is still called a false positive at 0.92 confidence, and it is the only
-remaining escalation miss. Both are cases where the model asserts more than the evidence
-carries, in opposite directions, which is also why `confidence_when_wrong` (0.885) is now
-indistinguishable from `confidence_when_right` (0.883): what calibration it has comes from
-being right more often, not from knowing when it is not.
+remaining escalation miss.
+
+### Opus 5 on the same corpus
+
+Opus closes the escalation gate completely: precision 1.000, recall 1.000, no misses and no
+false alarms across all fourteen cases. Its Brier score is the best of any run at 0.110, and
+it is the only analyst whose confidence actually discriminates, averaging 0.834 when right
+against 0.710 when wrong. Haiku sat at 0.883 and 0.885, which is to say it was equally certain
+either way and its Brier score was carried entirely by being right more often.
+
+It also answers the severity question, partly. Exact severity goes from 0.500 to 0.786 and
+every case lands within one band, so most of the inflation was a Haiku limitation rather than
+a property of the task. But three intrusions still come back `critical` against a `high` label,
+under the same instruction telling the model that band must stay rare. Reduced, not solved,
+and consistent in direction across both models.
+
+The technique score moves the other way, 0.903 down to 0.762, and that one is a problem with
+the metric rather than the model. Recall is 1.000: Opus finds every technique in the labels.
+Precision is 0.615 because it adds more, and the additions are mostly right. It tags the
+scanner sweep `T1595 Active Scanning`, the pkexec crash `T1068 Exploitation for Privilege
+Escalation`, and the `mysqldump --all-databases` staging `T1005 Data from Local System`. Those
+are defensible readings that the labels do not contain, because the labels were written to a
+convention: minimal technique sets on true positives, and empty sets on false positives even
+when a technique was genuinely observed. **So `technique_f1` measures agreement with that
+convention, not correctness**, and it should not be read as Opus being worse at ATT&CK. The
+honest fix is multi-annotator labels or credit for defensible supersets, and neither is in
+this repo.
+
+What Opus costs is 7x per incident, $0.051 against $0.007, and 3x the latency, 32 seconds
+against 10. For a queue where a missed escalation is the expensive failure, a perfect gate at
+five cents an incident is the trade most teams would take. For high-volume tuning work where
+the answer is usually "this is noise," Haiku at seven-tenths of a cent does the same job.
 
 Reproduce with:
 
@@ -218,9 +248,15 @@ Reproduce with:
 python -m soc.cli eval --analyst claude
 ```
 
-Per-case detail lands in `eval/scores.json`, showing exactly which cases each analyst got
-wrong and what it said. `eval/scores-haiku-before.json` is the same run against the earlier
-playbook, kept so the two are diffable. Fourteen incidents cost about nine cents on Haiku 4.5.
+```bash
+python -m soc.cli eval --analyst claude --model claude-opus-5 --out eval/scores-opus.json
+```
+
+Per-case detail lands in the scores file, showing exactly which cases each analyst got wrong
+and what it said. Three runs are committed so they are diffable: `eval/scores.json` (Haiku,
+revised playbook), `eval/scores-haiku-before.json` (Haiku, original playbook), and
+`eval/scores-opus.json` (Opus 5). Fourteen incidents cost nine cents on Haiku and 71 cents on
+Opus.
 
 ## Design notes
 
