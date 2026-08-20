@@ -1,0 +1,957 @@
+{
+  "analyst": "rules",
+  "cases_labelled": 45,
+  "incidents_produced": 45,
+  "metrics": {
+    "correlation_purity": 1.0,
+    "verdict_accuracy": 0.0,
+    "severity_exact": 0.0,
+    "severity_within_one": 0.3333333333333333,
+    "escalation_precision": 0.0,
+    "escalation_recall": 0.0,
+    "escalation_f1": 0.0,
+    "escalation_false_alarms": 0,
+    "escalation_misses": 15,
+    "technique_precision": 1.0,
+    "technique_recall": 1.0,
+    "technique_f1": 1.0,
+    "brier": 0.25,
+    "latency_p50_ms": 0,
+    "latency_p95_ms": 0,
+    "cost_total_usd": 0.0,
+    "cost_per_incident_usd": 0.0
+  },
+  "intervals": {
+    "escalation_f1": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "verdict_accuracy": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "severity_exact": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "technique_f1": {
+      "low": 1.0,
+      "high": 1.0
+    },
+    "brier": {
+      "low": 0.25,
+      "high": 0.25
+    }
+  },
+  "cases": [
+    {
+      "case": "guide-103074",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1566"
+      ],
+      "techniques_expected": [
+        "T1566"
+      ],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-109115",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "5 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-135006",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-154135",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-16876",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1566",
+        "T1566.002"
+      ],
+      "techniques_expected": [
+        "T1566",
+        "T1566.002"
+      ],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-190228",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on 151744, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-196702",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "10 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-197040",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "2 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-200937",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-206108",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "5 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-212514",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1566"
+      ],
+      "techniques_expected": [
+        "T1566"
+      ],
+      "summary": "4 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-21806",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004"
+      ],
+      "summary": "4 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-219749",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078"
+      ],
+      "techniques_expected": [
+        "T1078"
+      ],
+      "summary": "2 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-24138",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004",
+        "T1189",
+        "T1190"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004",
+        "T1189",
+        "T1190"
+      ],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-246908",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "4 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-247555",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1102",
+        "T1481",
+        "T1567",
+        "T1567.002",
+        "T1573"
+      ],
+      "techniques_expected": [
+        "T1102",
+        "T1481",
+        "T1567",
+        "T1567.002",
+        "T1573"
+      ],
+      "summary": "7 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-273",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004",
+        "T1110",
+        "T1110.001",
+        "T1110.003"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004",
+        "T1110",
+        "T1110.001",
+        "T1110.003"
+      ],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-317400",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "5 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-321174",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "2 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-327548",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "5 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-333281",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "5 alerts on 8359, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-35081",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1003",
+        "T1012",
+        "T1552.002"
+      ],
+      "techniques_expected": [
+        "T1003",
+        "T1012",
+        "T1552.002"
+      ],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-39089",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004"
+      ],
+      "summary": "9 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-397730",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004"
+      ],
+      "summary": "4 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-405377",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004"
+      ],
+      "summary": "4 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-40707",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1534",
+        "T1566.002"
+      ],
+      "techniques_expected": [
+        "T1534",
+        "T1566.002"
+      ],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-425540",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004"
+      ],
+      "summary": "4 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-44655",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1566"
+      ],
+      "techniques_expected": [
+        "T1566"
+      ],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-452326",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-454819",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004"
+      ],
+      "summary": "3 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-501250",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004"
+      ],
+      "summary": "3 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-50243",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-504158",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1074.001",
+        "T1560",
+        "T1560.001"
+      ],
+      "techniques_expected": [
+        "T1074.001",
+        "T1560",
+        "T1560.001"
+      ],
+      "summary": "3 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-505116",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-516415",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-519728",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-523483",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-535831",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "3 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-552044",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "2 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-574162",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "2 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-62234",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "7 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-64636",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004"
+      ],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-64677",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004",
+        "T1566"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004",
+        "T1566"
+      ],
+      "summary": "12 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-67132",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "false_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "informational",
+      "escalate": false,
+      "escalate_expected": false,
+      "confidence": 0.5,
+      "techniques": [
+        "T1078",
+        "T1078.004",
+        "T1566",
+        "T1566.001"
+      ],
+      "techniques_expected": [
+        "T1078",
+        "T1078.004",
+        "T1566",
+        "T1566.001"
+      ],
+      "summary": "12 alerts on 87824, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "case": "guide-92677",
+      "pure": true,
+      "verdict": "inconclusive",
+      "verdict_expected": "true_positive",
+      "verdict_ok": false,
+      "severity": "medium",
+      "severity_expected": "high",
+      "escalate": false,
+      "escalate_expected": true,
+      "confidence": 0.5,
+      "techniques": [],
+      "techniques_expected": [],
+      "summary": "6 alerts on 153085, max rule level 7",
+      "latency_ms": 0,
+      "cost_usd": 0.0
+    }
+  ]
+}

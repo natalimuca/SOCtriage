@@ -106,9 +106,24 @@ def _alert(row: pd.Series, iid, n: int) -> Alert:
     if stamp.tzinfo is None:
         stamp = stamp.replace(tzinfo=timezone.utc)
 
-    host = _first(row, "DeviceName", "IpAddress", "AccountName") or f"org{_first(row, 'OrgId') or '0'}"
-    desc = _first(row, "AlertTitle", "Category") or "GUIDE alert"
-    groups = [g for g in [_first(row, "Category"), _first(row, "EntityType")] if g]
+    # GUIDE anonymises titles, hosts, IPs and users to integer hashes, so the readable signal
+    # is the category, the ATT&CK technique, and the entity type. Build the description from
+    # those rather than the meaningless hashed AlertTitle.
+    category = _first(row, "Category") or "Alert"
+    entity = _first(row, "EntityType")
+    suspicion = _first(row, "SuspicionLevel")
+    last_verdict = _first(row, "LastVerdict")
+    techs = _techniques(row.get("MitreTechniques"))
+    parts = [category]
+    if entity:
+        parts.append(f"on {entity}")
+    if suspicion:
+        parts.append(f"suspicion={suspicion}")
+    if last_verdict:
+        parts.append(f"detector_verdict={last_verdict}")
+    desc = " ".join(parts)
+    groups = [g for g in [category, entity, _first(row, "EvidenceRole")] if g]
+    host = _first(row, "DeviceName", "IpAddress") or f"org-{_first(row, 'OrgId') or '0'}"
     return Alert(
         id=f"{iid}-{n}",
         timestamp=stamp,
@@ -116,10 +131,8 @@ def _alert(row: pd.Series, iid, n: int) -> Alert:
         rule_level=7,
         rule_description=desc,
         rule_groups=groups,
-        technique_ids=_techniques(row.get("MitreTechniques")),
+        technique_ids=techs,
         host=host,
-        src_ip=_first(row, "IpAddress"),
-        src_user=_first(row, "AccountName"),
-        full_log=f"{desc} [{_first(row, 'Category') or ''}]",
+        full_log=desc,
         raw={"case": f"guide-{iid}", "grade": _first(row, "IncidentGrade")},
     )

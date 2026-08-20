@@ -292,6 +292,39 @@ Per-case detail lands in the scores file, showing exactly which cases each analy
 and what it said. Committed runs: `eval/scores-rules.json`, `eval/scores.json` (Haiku), and
 `eval/scores-opus.json` (Opus 5), all on the current 40-case corpus.
 
+## External validation on GUIDE
+
+The single-annotator problem has a real fix: score against labels other people wrote. Microsoft's
+[GUIDE dataset](https://www.kaggle.com/datasets/Microsoft/microsoft-security-incident-prediction)
+is 1M incidents whose triage grade (TruePositive / BenignPositive / FalsePositive) was assigned
+by real customer SOC analysts. `soc/guide.py` reshapes a sample of it into the pipeline's
+incident format and maps the grade to a verdict, and `soc guide <csv>` scores any analyst
+against those grades:
+
+```bash
+python -m soc.cli guide eval/GUIDE_Test.csv --analyst claude --sample 45
+```
+
+The result was not a clean win, and the reason is worth more than a win would have been. GUIDE
+is anonymized: alert titles, hostnames, IPs, and usernames are all replaced with integer hashes.
+The only readable signal left is the category, the ATT&CK technique, and the entity type. On 45
+incidents balanced across the grades, Haiku returned `inconclusive` on 43 of them, and on the 2
+it committed to it was right both times.
+
+That is the correct behaviour, not a failure. With the deciding evidence hashed away, an honest
+triage says "I cannot call this, send it to a human", which is exactly what the playbook
+instructs. The consequences show it: escalation recall is 1.000, so every one of the 15 real
+incidents was caught, while the model declined to invent verdicts it could not support. A system
+that returned confident guesses on stripped-down categorical features would score higher on
+paper and be worse in practice.
+
+So GUIDE does not validate verdict accuracy here, because the anonymized features are too thin
+for anyone to make GUIDE's binary call from, and forcing the model to guess would only reward
+overconfidence. What it does validate is calibration under distribution shift: handed data far
+outside its lab corpus, the model fails safe rather than hallucinating. The honest use of GUIDE
+would need its un-anonymized form, which is not public. The adapter and command are in the repo
+so the check reruns against any labelled corpus in that schema.
+
 ## Design notes
 
 The playbook in `soc/playbook.md` is the entire system prompt and it never changes between
