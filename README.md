@@ -128,16 +128,19 @@ alerts all belong to one case, so a correlation bug cannot hide inside a triage 
 `--analyst rules` is severity from Wazuh rule level, escalation above level 10, techniques
 copied from whatever the firing rules asserted. It exists to be beaten:
 
-| metric | rules baseline |
-| --- | --- |
-| escalation F1 | 0.800 |
-| escalation misses | 2 |
-| escalation false alarms | 1 |
-| verdict accuracy | 0.500 |
-| severity exact | 0.571 |
-| technique F1 | 0.909 |
-| Brier | 0.250 |
-| correlation purity | 1.000 |
+| metric | rules baseline | claude |
+| --- | --- | --- |
+| escalation F1 | 0.800 | not run |
+| escalation misses | 2 | not run |
+| escalation false alarms | 1 | not run |
+| verdict accuracy | 0.500 | not run |
+| severity exact | 0.571 | not run |
+| technique F1 | 0.909 | not run |
+| Brier | 0.250 | not run |
+| correlation purity | 1.000 | 1.000 |
+
+Correlation purity is identical by construction: correlation happens before either analyst is
+called, so it measures the pipeline, not the model.
 
 The baseline is deliberately not weak. Rule level alone gets escalation F1 to 0.8 on this
 corpus, and copying rule-asserted techniques scores 0.909 because Wazuh's own ATT&CK mapping
@@ -145,10 +148,17 @@ is decent. Verdict accuracy is where it collapses: a threshold cannot tell a pac
 from an attacker, so it sits at 0.500 and reports 0.5 confidence on everything, which is what
 the Brier score of 0.250 measures.
 
-**No Claude numbers are recorded here yet.** This machine has no Anthropic credentials, so
-the `claude` analyst has never been executed against the corpus. Add a key and run
-`soc eval --analyst claude` to fill in the second column. Publishing a comparison before
-running it would defeat the point of building the harness.
+**The claude column is unrun, not withheld.** Filling it takes one command against a corpus
+that is already in the repo, so anything printed there before that command executes would be
+a guess, and a benchmark that publishes guesses is not a benchmark. Put an API key in `.env`
+and run:
+
+```bash
+python -m soc.cli eval --analyst claude
+```
+
+Fourteen incidents at high effort costs a few cents. The numbers land in `eval/scores.json`
+alongside a per-case breakdown showing exactly which cases each analyst got wrong.
 
 ## Design notes
 
