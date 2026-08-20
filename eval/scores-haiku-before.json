@@ -4,24 +4,24 @@
   "incidents_produced": 14,
   "metrics": {
     "correlation_purity": 1.0,
-    "verdict_accuracy": 0.8571428571428571,
-    "severity_exact": 0.5,
+    "verdict_accuracy": 0.7857142857142857,
+    "severity_exact": 0.42857142857142855,
     "severity_within_one": 0.8571428571428571,
-    "escalation_precision": 0.875,
-    "escalation_recall": 0.875,
-    "escalation_f1": 0.875,
+    "escalation_precision": 0.8333333333333334,
+    "escalation_recall": 0.625,
+    "escalation_f1": 0.7142857142857143,
     "escalation_false_alarms": 1,
-    "escalation_misses": 1,
-    "technique_precision": 0.9333333333333333,
-    "technique_recall": 0.875,
-    "technique_f1": 0.9032258064516129,
-    "brier": 0.13756428571428567,
-    "confidence_when_right": 0.8833333333333333,
-    "confidence_when_wrong": 0.885,
-    "latency_p50_ms": 10208,
-    "latency_p95_ms": 14441,
-    "cost_total_usd": 0.091305,
-    "cost_per_incident_usd": 0.006521785714285714
+    "escalation_misses": 3,
+    "technique_precision": 0.8823529411764706,
+    "technique_recall": 0.9375,
+    "technique_f1": 0.9090909090909091,
+    "brier": 0.1654,
+    "confidence_when_right": 0.890909090909091,
+    "confidence_when_wrong": 0.8133333333333334,
+    "latency_p50_ms": 11420,
+    "latency_p95_ms": 18488,
+    "cost_total_usd": 0.08583,
+    "cost_per_incident_usd": 0.006130714285714286
   },
   "cases": [
     {
@@ -37,9 +37,9 @@
       "confidence": 0.92,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "Routine administrative maintenance: SSH login followed by package upgrade via sudo.",
-      "latency_ms": 7892,
-      "cost_usd": 0.005498
+      "summary": "System administrator natali performed routine package management via SSH and sudo on app02.",
+      "latency_ms": 5632,
+      "cost_usd": 0.004223
     },
     {
       "case": "apt_upgrade_fim",
@@ -51,12 +51,12 @@
       "severity_expected": "informational",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.95,
+      "confidence": 0.92,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "Package upgrade of libssl3 on app02 triggered integrity alerts on OpenSSL binaries and libraries as expected.",
-      "latency_ms": 5940,
-      "cost_usd": 0.0051
+      "summary": "Debian package libssl3 installed on app02 triggered integrity alerts on OpenSSL binaries and libraries; standard package upgrade sequence.",
+      "latency_ms": 7257,
+      "cost_usd": 0.00481
     },
     {
       "case": "backup_failure",
@@ -68,12 +68,12 @@
       "severity_expected": "informational",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.92,
+      "confidence": 0.95,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "Backup script encountered a transient network error; consistent with routine backup failure, not intrusion activity.",
-      "latency_ms": 7653,
-      "cost_usd": 0.005011
+      "summary": "Backup job failure on db01 at 03:30 UTC; rsync connection loss followed by exit status 12.",
+      "latency_ms": 12200,
+      "cost_usd": 0.004661
     },
     {
       "case": "bruteforce_success",
@@ -98,9 +98,9 @@
         "T1136.001",
         "T1548.003"
       ],
-      "summary": "Attacker with credential access brute-forced SSH, gained foothold as backup user, escalated to root, and created a new UID-0 account on a public-facing web server.",
-      "latency_ms": 14441,
-      "cost_usd": 0.009365
+      "summary": "Attacker from flagged IP enumerated invalid SSH users, gained valid access as backup account, escalated to root, and created a privileged persistence account on internet-exposed web server.",
+      "latency_ms": 18488,
+      "cost_usd": 0.00834
     },
     {
       "case": "build_churn",
@@ -115,9 +115,9 @@
       "confidence": 0.95,
       "techniques": [],
       "techniques_expected": [],
-      "summary": "Jenkins build process generated new compiled artifacts and modified build configuration files during normal Maven build execution.",
-      "latency_ms": 6462,
-      "cost_usd": 0.004947
+      "summary": "File-integrity alerts from Jenkins workspace during Maven build artifact generation.",
+      "latency_ms": 6576,
+      "cost_usd": 0.004672
     },
     {
       "case": "cron_persistence",
@@ -129,9 +129,10 @@
       "severity_expected": "high",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.95,
+      "confidence": 0.92,
       "techniques": [
         "T1053.003",
+        "T1059.004",
         "T1105"
       ],
       "techniques_expected": [
@@ -139,9 +140,9 @@
         "T1059.004",
         "T1105"
       ],
-      "summary": "Attacker established persistent command-and-control via cron-scheduled shell script execution on internet-exposed web server.",
-      "latency_ms": 10658,
-      "cost_usd": 0.007153
+      "summary": "Attacker added a malicious cron job to svc_update account on web01 that downloads and executes a shell script from an external host.",
+      "latency_ms": 11381,
+      "cost_usd": 0.007143
     },
     {
       "case": "exfil_staging",
@@ -153,7 +154,7 @@
       "severity_expected": "critical",
       "escalate": true,
       "escalate_expected": true,
-      "confidence": 0.95,
+      "confidence": 0.92,
       "techniques": [
         "T1048",
         "T1074.001"
@@ -162,9 +163,9 @@
         "T1048",
         "T1074.001"
       ],
-      "summary": "Attacker staged and exfiltrated entire MySQL database from crown-jewel asset to flagged external IP.",
-      "latency_ms": 10114,
-      "cost_usd": 0.007445
+      "summary": "Attacker exfiltrated customer database from db01 using mysqldump to a flagged external IP, staging data in /tmp/.cache before transfer.",
+      "latency_ms": 10503,
+      "cost_usd": 0.00694
     },
     {
       "case": "internet_noise",
@@ -176,12 +177,14 @@
       "severity_expected": "low",
       "escalate": false,
       "escalate_expected": false,
-      "confidence": 0.92,
-      "techniques": [],
+      "confidence": 0.88,
+      "techniques": [
+        "T1110.001"
+      ],
       "techniques_expected": [],
-      "summary": "Three failed SSH login attempts against non-existent usernames from different external sources over 5 minutes; consistent with internet background noise against a public-facing host.",
-      "latency_ms": 6823,
-      "cost_usd": 0.005278
+      "summary": "Three failed SSH login attempts against non-existent users from different private sources over 5 minutes; consistent with internet background noise on a public-facing host.",
+      "latency_ms": 8522,
+      "cost_usd": 0.005418
     },
     {
       "case": "lateral_ssh",
@@ -202,9 +205,9 @@
         "T1021.004",
         "T1098.004"
       ],
-      "summary": "Attacker modified SSH authorized_keys on database service account and authenticated as that user within 75 seconds on a crown-jewel database host.",
-      "latency_ms": 10208,
-      "cost_usd": 0.007265
+      "summary": "Attacker modified the SSH authorized_keys file for the appsvc service account on the primary customer database, then successfully authenticated using the newly installed key within 74 seconds.",
+      "latency_ms": 11420,
+      "cost_usd": 0.007245
     },
     {
       "case": "offhours_login",
@@ -214,18 +217,18 @@
       "verdict_ok": true,
       "severity": "medium",
       "severity_expected": "medium",
-      "escalate": true,
+      "escalate": false,
       "escalate_expected": true,
-      "confidence": 0.5,
+      "confidence": 0.55,
       "techniques": [
         "T1078"
       ],
       "techniques_expected": [
         "T1078"
       ],
-      "summary": "SSH authentication success for user dmitri from public IP 91.203.144.8 on DMZ-exposed application server; first occurrence of this rule on this host.",
-      "latency_ms": 10263,
-      "cost_usd": 0.006245
+      "summary": "SSH authentication success for user dmitri from a public IP address on a DMZ-exposed application server, never seen before on this host.",
+      "latency_ms": 17095,
+      "cost_usd": 0.006365
     },
     {
       "case": "offhours_useradd",
@@ -242,30 +245,30 @@
       "techniques_expected": [
         "T1136.001"
       ],
-      "summary": "Routine service account provisioning on a CI runner during scheduled maintenance window, not an attacker persistence mechanism.",
-      "latency_ms": 6553,
-      "cost_usd": 0.004874
+      "summary": "New CI service account ci_runner2 created on Jenkins runner build01, consistent with automated provisioning.",
+      "latency_ms": 11847,
+      "cost_usd": 0.004414
     },
     {
       "case": "pkexec_privesc",
       "pure": true,
-      "verdict": "true_positive",
+      "verdict": "inconclusive",
       "verdict_expected": "true_positive",
-      "verdict_ok": true,
-      "severity": "high",
+      "verdict_ok": false,
+      "severity": "medium",
       "severity_expected": "high",
-      "escalate": true,
+      "escalate": false,
       "escalate_expected": true,
-      "confidence": 0.75,
+      "confidence": 0.6,
       "techniques": [
         "T1548.001"
       ],
       "techniques_expected": [
         "T1548.001"
       ],
-      "summary": "www-data user attempted privilege escalation via sudo and pkexec, triggering a kernel trap on a DMZ-facing application server.",
-      "latency_ms": 11562,
-      "cost_usd": 0.007508
+      "summary": "www-data process attempted privilege escalation via sudo and pkexec within 37 seconds, triggering kernel fault in libc during pkexec execution.",
+      "latency_ms": 10360,
+      "cost_usd": 0.006723
     },
     {
       "case": "scanner_404s",
@@ -277,14 +280,14 @@
       "severity_expected": "low",
       "escalate": true,
       "escalate_expected": false,
-      "confidence": 0.85,
+      "confidence": 0.92,
       "techniques": [
         "T1190"
       ],
       "techniques_expected": [],
-      "summary": "Scanner probing for known vulnerable application paths on internet-facing web server; source is private-network tool (zgrab) performing reconnaissance, not random internet noise.",
-      "latency_ms": 12125,
-      "cost_usd": 0.007664
+      "summary": "Targeted reconnaissance against public-facing web server using zgrab scanner, probing for known vulnerable software paths with multiple 404s and persistent attempts.",
+      "latency_ms": 14740,
+      "cost_usd": 0.006724
     },
     {
       "case": "webshell",
@@ -305,9 +308,9 @@
         "T1190",
         "T1505.003"
       ],
-      "summary": "Attacker uploaded a PHP web shell to the public web server and is actively executing commands through it.",
-      "latency_ms": 12023,
-      "cost_usd": 0.007952
+      "summary": "Attacker exploited public-facing web server to upload and execute a PHP web shell, establishing command execution capability on a high-criticality internet-exposed asset.",
+      "latency_ms": 13616,
+      "cost_usd": 0.008152
     }
   ]
 }

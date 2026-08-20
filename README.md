@@ -128,19 +128,19 @@ alerts all belong to one case, so a correlation bug cannot hide inside a triage 
 `--analyst rules` is severity from Wazuh rule level, escalation above level 10, techniques
 copied from whatever the firing rules asserted. It exists to be beaten:
 
-| metric | rules baseline | haiku 4.5 |
-| --- | --- | --- |
-| escalation F1 | **0.800** | 0.714 |
-| escalation misses | **2** | 3 |
-| escalation false alarms | 1 | 1 |
-| verdict accuracy | 0.500 | **0.786** |
-| severity exact | **0.571** | 0.429 |
-| severity within one band | 0.714 | **0.857** |
-| technique F1 | 0.909 | 0.909 |
-| Brier | 0.250 | **0.165** |
-| correlation purity | 1.000 | 1.000 |
-| cost per incident | $0 | $0.006 |
-| latency p50 | 0 ms | 11,420 ms |
+| metric | rules baseline | haiku 4.5 | haiku, revised playbook |
+| --- | --- | --- | --- |
+| escalation F1 | 0.800 | 0.714 | **0.875** |
+| escalation misses | 2 | 3 | **1** |
+| escalation false alarms | 1 | 1 | 1 |
+| verdict accuracy | 0.500 | 0.786 | **0.857** |
+| severity exact | **0.571** | 0.429 | 0.500 |
+| severity within one band | 0.714 | **0.857** | **0.857** |
+| technique F1 | **0.909** | **0.909** | 0.903 |
+| Brier | 0.250 | 0.165 | **0.138** |
+| correlation purity | 1.000 | 1.000 | 1.000 |
+| cost per incident | $0 | $0.006 | $0.007 |
+| latency p50 | 0 ms | 11,420 ms | 10,208 ms |
 
 Correlation purity is identical by construction: correlation runs before either analyst is
 called, so it measures the pipeline, not the model.
@@ -154,31 +154,44 @@ from the same rule assertions and neither adds or drops enough to separate them.
 
 ### What the model actually did
 
-Haiku 4.5 does not beat the baseline outright, and the way it loses is the useful part.
+On the playbook as originally written, Haiku 4.5 **lost to the threshold baseline** on the
+metric that matters most: escalation F1 of 0.714 against 0.800. It understood the incidents
+far better, verdict accuracy 0.786 against 0.500 and a Brier score of 0.165 against 0.250, and
+it cleared five of six false positives while naming the benign mechanism in each. But every
+point of the escalation loss came from one behaviour: **it treated uncertainty as a reason not
+to escalate.** All three misses were cases where the honest verdict is `inconclusive` and the
+correct action is to hand it to a human anyway.
 
-It understands the incidents far better. Verdict accuracy goes from 0.500 to 0.786, and the
-Brier score improves from 0.250 to 0.165, meaning its stated confidence carries real
-information rather than being a constant. It cleared five of the six false positives and named
-the benign mechanism in each: package upgrade, provisioning, background noise, a nightly job
-that always fails, build-server churn.
+The second pattern was severity inflation. Four of six true positives came back `critical`
+where the label says `high`, which is why exact severity accuracy sat at 0.429, below the
+baseline, while within-one-band was 0.857, above it. Not confused about how bad things are,
+just consistently one band hot.
 
-It still loses on escalation F1, 0.714 against 0.800, and every point of that loss comes from
-one behaviour: **it treats uncertainty as a reason not to escalate.** All three misses are
-cases where the honest verdict is `inconclusive` and the correct action is to hand it to a
-human anyway. On `offhours_useradd` it went further and called an unexplained 02:00 root
-account creation a false positive at 0.92 confidence. Its one false alarm runs the other way,
-promoting a scanner sweeping 404s to a true positive.
+Neither failure was really about the model. The playbook said when to escalate a `medium` but
+never said an `inconclusive` verdict is itself grounds for escalation, and it defined
+`critical` without saying it should be rare. So both got written into the playbook and the
+eval was run again on the same corpus with the same model.
 
-The second pattern is severity inflation. Exact severity accuracy is 0.429, worse than the
-baseline's 0.571, but within-one-band is 0.857, better than 0.714. It is not confused about
-how bad things are, it is consistently one band hot: four of the six true positives came back
-`critical` where the label says `high`. On a real queue that means a `critical` page loses its
-meaning by the end of the first week.
+**One fix worked and the other did not.**
 
-Both failures are prompt problems before they are model problems. The playbook tells the model
-when to escalate a `medium`, but never states that an `inconclusive` verdict is itself grounds
-for escalation, and it defines `critical` without saying it should be rare. That is the point
-of having the harness: the failure has a name, a case list, and a number to move.
+Stating that uncertainty escalates moved escalation F1 from 0.714 to 0.875, past the baseline,
+cutting misses from three to one. It carried verdict accuracy up to 0.857 and the Brier score
+to 0.138 as a side effect: told that `inconclusive` is a usable answer with a real action
+attached, the model stopped forcing thin evidence into a confident `false_positive`.
+
+Telling it `critical` must stay rare, with an explicit "would you wake someone at 03:00" test,
+barely moved anything. Exact severity went 0.429 to 0.500 and the same four intrusions still
+come back `critical`. Severity inflation is not a gap in the instructions, so writing better
+instructions does not fix it. A rubric anchored to worked examples, or a calibration pass over
+labelled incidents, would be the next thing to try.
+
+Two failures survive at the revised playbook. `scanner_404s`, a 404 sweep with no successful
+response, still gets promoted to a true positive. `offhours_useradd`, an unexplained 02:00
+root account creation, is still called a false positive at 0.92 confidence, and it is the only
+remaining escalation miss. Both are cases where the model asserts more than the evidence
+carries, in opposite directions, which is also why `confidence_when_wrong` (0.885) is now
+indistinguishable from `confidence_when_right` (0.883): what calibration it has comes from
+being right more often, not from knowing when it is not.
 
 Reproduce with:
 
@@ -187,7 +200,8 @@ python -m soc.cli eval --analyst claude
 ```
 
 Per-case detail lands in `eval/scores.json`, showing exactly which cases each analyst got
-wrong and what it said. Fourteen incidents cost $0.086 on Haiku 4.5.
+wrong and what it said. `eval/scores-haiku-before.json` is the same run against the earlier
+playbook, kept so the two are diffable. Fourteen incidents cost about nine cents on Haiku 4.5.
 
 ## Design notes
 

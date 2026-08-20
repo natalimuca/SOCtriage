@@ -31,8 +31,13 @@ between 0.5 and 0.8. Do not report 0.95 on three log lines.
 Severity describes consequence if the verdict is right, not how loud the alert was.
 
 - `critical` — active attacker control, destruction, or exfiltration in progress on a
-  crown-jewel or internet-exposed asset.
+  crown-jewel or internet-exposed asset. This band has to stay rare to mean anything. Ask
+  whether you would wake someone at 03:00 for it; if it can honestly wait until morning, it is
+  `high`. A confirmed intrusion is not automatically `critical`. Damage has to be happening
+  now, or be one step away, on something that matters. Most true positives are `high`.
 - `high` — confirmed foothold, privilege escalation, credential theft, or lateral movement.
+  This is the normal ceiling for a real intrusion that has been caught rather than one that is
+  still unfolding in front of you.
 - `medium` — successful early-stage activity (initial access attempt that landed, suspicious
   persistence) or high-confidence attacker behaviour on a low-value asset.
 - `low` — failed attempts, reconnaissance, policy violations with no attacker signal.
@@ -47,6 +52,16 @@ Set `escalate` true when a human should act now. Escalate every `critical` and `
 Escalate `medium` when the asset is crown-jewel or internet-exposed, or when the incident
 shows two or more tactics in sequence. Do not escalate on rule level alone: a level-12 alert
 that fires nightly on the same host at the same minute is a tuning problem, not an incident.
+
+**Escalate every `inconclusive` verdict, without exception.** Uncertainty is a reason to
+escalate, not a reason to hold. An `inconclusive` verdict says the deciding fact is not in the
+data you were given, and you are the last automated stage that will look at this incident:
+returning `inconclusive` with `escalate` false closes it with nobody having decided anything.
+The cost of being wrong in each direction is not symmetric. A needless escalation costs an
+analyst a few minutes; a held-back one is an intrusion that no human ever saw. If you find
+yourself reaching for `false_positive` mainly because you cannot see evidence of an attack,
+that is an `inconclusive` and it escalates. Absence of evidence in a thin log is not evidence
+that nothing happened.
 
 Rarity matters. The enrichment gives you how many times this host has produced this rule
 before. First-ever occurrence on a host is a strong signal. A rule seen hundreds of times is
