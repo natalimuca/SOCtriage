@@ -1,4 +1,4 @@
-# soc
+# SOCtriage
 
 Alert triage for a Wazuh SIEM. Alerts are correlated into incidents, enriched with asset and
 rarity context, and sent to Claude for a verdict, a severity, an ATT&CK mapping tied to
