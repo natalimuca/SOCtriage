@@ -94,14 +94,21 @@ python -m soc.cli stack up
 ```
 
 Four containers: `wazuh.manager`, `wazuh.indexer`, `wazuh.dashboard` (https://localhost:8443,
-`admin` / `SecretPassword`), and `victim`, which fires one of six scenes every ninety seconds.
-Three scenes are attacks (credential guessing that succeeds and creates an account, a web
-shell delivered after a scan, cron persistence pulling a remote script), three are benign
-(admin maintenance, internet background noise, a failing backup job). Fire one on demand:
+`admin` / `SecretPassword`), and `victim`, which runs a real Wazuh agent and fires one of eight
+scenes every two minutes. The attack scenes perform real actions on the host, credential
+guessing that lands and creates a UID-0 account, a web shell written into a monitored web root,
+cron persistence, an `/etc/passwd` edit, an SSH key drop, so the agent's own file-integrity and
+rootcheck modules detect them. Benign scenes cover admin maintenance, background noise, and
+scanner 404s. Fire one on demand:
 
 ```bash
-docker compose -f docker/docker-compose.yml exec victim python scenes.py --scene web_shell
+docker compose -f docker/docker-compose.yml exec victim python3 /opt/attacks.py --scene web_shell
 ```
+
+The agent installs and enrols itself against the manager on first boot, so the stack takes a
+couple of minutes to produce its first agent-side alerts. Endpoint protection on the host may
+quarantine the web-shell payload in `docker/agent/attacks.py`; it is assembled at runtime to
+avoid that, which is itself a sign the simulation is realistic enough to trip a real scanner.
 
 The passwords in `docker/` are the defaults shipped with Wazuh's own single-node example and
 are committed on purpose so the lab comes up in one command. They protect nothing but a
@@ -319,7 +326,11 @@ Each analyst was run once per configuration, so run-to-run variance is unmeasure
 in the intervals. The bootstrap covers which cases are in the corpus, not whether the model
 would answer the same way twice.
 
-The lab generator writes log lines rather than performing the attacks, so Wazuh's decoders
-and rules are exercised end to end but its file-integrity and rootcheck modules are not.
-Alerts are attributed to the syslog hostname in the line, which is how a single manager
-container can stand in for several hosts.
+The `victim` container runs a real Wazuh agent, and the attack scenes perform the actions
+rather than describing them: they create files in a monitored web root, append a UID-0 line to
+`/etc/passwd`, drop an SSH key, and rewrite a crontab. The agent's own syscheck and rootcheck
+modules detect those, so file-integrity monitoring is exercised end to end (32 "Integrity
+checksum changed" and 26 "File added" alerts in a representative run, all tagged `victim01`).
+Brute-force and web scenes drive a real `sshd` and write framed syslog into a shared volume the
+manager reads. The one thing still simulated is the network origin: the SSH attempts come from
+loopback with spoofed source addresses in the log line, not from a separate attacker host.

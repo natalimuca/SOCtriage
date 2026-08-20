@@ -98,13 +98,15 @@ services:
       - wazuh.manager:wazuh.manager
 
   victim:
-    build: ./generator
+    build: ./agent
     hostname: victim01
     restart: unless-stopped
     depends_on:
       - wazuh.manager
     environment:
-      - SCENE_INTERVAL=90
+      - WAZUH_MANAGER=wazuh.manager
+      - WAZUH_AGENT_NAME=victim01
+      - SCENE_INTERVAL=120
     volumes:
       - lab_logs:/var/log/lab
 
