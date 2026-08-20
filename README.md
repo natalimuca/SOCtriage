@@ -15,21 +15,22 @@ simulated on the Python side.
 
 ## The problem
 
-![Wazuh Threat Hunting](docs/wazuh-alerts.png)
-
-This is what a SIEM hands an analyst: 331 alerts in a day, 79 authentication failures, 31
-successes, and a chart of which ATT&CK techniques fired. It cannot tell you whether any of
-those 31 successes followed the 79 failures on the same host inside three minutes, which is
-the difference between background noise and an intrusion. Answering that is a person reading
-alerts one at a time.
+A SIEM hands an analyst hundreds of alerts a day: authentication failures, successes, file
+changes, a chart of which ATT&CK techniques fired. What it cannot say is whether any of those
+successes followed the failures on the same host within minutes, which is the difference
+between background noise and an intrusion. Answering that is a person reading alerts one at a
+time. This pipeline does that first pass.
 
 ![Triage output](docs/triage-run.png)
 
-Same alerts, after the pipeline. Twelve incidents, nine worth escalating, 16 cents, each one a
-paragraph a human can act on. The second row is the tell: the model reports the attacker
+The same alerts, after the pipeline: twelve incidents, nine worth escalating, 16 cents, each a
+paragraph a human can act on. The second row is the tell. The model reports the attacker
 escalating to root and creating a UID-0 backdoor *while separating out `natali`, a legitimate
 admin doing routine work on the same host in the same window*. A rule threshold cannot make
 that distinction; it is the difference the evaluation measures.
+
+A fuller illustrated tour, from raw alerts through the live agent to verdicts written back into
+the SIEM dashboard, is in [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md).
 
 ## Flow
 
@@ -157,11 +158,10 @@ summarises and is queryable from the same dashboard:
 python -m soc.cli run --source wazuh --analyst claude --sink indexer
 ```
 
-![Triage verdicts in the Wazuh dashboard](docs/wazuh-triage.png)
-
-Filtered to `triage.escalate: true`, the `soc-triage` index is the escalation queue: nine
-incidents, each carrying the model's verdict, severity, and narrative as columns an analyst can
-sort and search, inside the SIEM's own UI rather than a text file.
+Filtered to `triage.escalate: true`, the `soc-triage` index becomes the escalation queue,
+each incident carrying the model's verdict, severity, and narrative as columns an analyst can
+sort and search inside the SIEM's own UI rather than a text file (screenshot in
+[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)).
 
 The **webhook** sink posts escalations to a Slack-compatible URL. Only incidents the analyst
 escalated are sent, so the channel is a queue of things a human should look at rather than a
@@ -329,10 +329,31 @@ did not make the corpus representative. Treat the numbers as a regression harnes
 the prompt, model, or enrichment, not as evidence about production performance. Feeding it real
 labelled alerts is the obvious next step and nothing in the pipeline needs to change to do it.
 
-Single annotator is the harder half of that problem. The technique metric already shows what
-it costs: a defensible ATT&CK tag scores as an error because it is absent from labels one
-person wrote to a convention. Two annotators on the same corpus, with disagreements resolved
-in the open, would be worth more than another hundred cases from the same author.
+Single annotator is the harder half of that problem, and there is a partial check for it in the
+repo. `soc agreement` treats a model's independent verdicts as a second annotator and reports
+inter-annotator agreement against the hand labels:
+
+```bash
+python -m soc.cli agreement
+```
+
+Opus, which never saw the labels, agrees with them on verdict at Cohen's κ = 0.85 (0.90 raw)
+and on the escalate decision at κ = 0.95. That is "almost perfect" agreement by the usual
+reading, which is some evidence the labels are not arbitrary. The four cases where they
+disagree are all on the `inconclusive` boundary, exactly where a real analyst would also
+hesitate:
+
+| case | my label | Opus |
+| --- | --- | --- |
+| `vpn_bruteforce_success` | true_positive | inconclusive |
+| `mail_relay_abuse` | true_positive | inconclusive |
+| `service_crashloop` | false_positive | inconclusive |
+| `encoded_command` | inconclusive | true_positive |
+
+A model is not a second human and this does not remove the bias, since I both wrote the labels
+and chose the model. But it names the four cases a second human should adjudicate first, which
+is more useful than asserting the single annotator was right. Two independent human annotators,
+with disagreements resolved in the open, remain the real fix.
 
 Each analyst was run once per configuration, so run-to-run variance is unmeasured and is not
 in the intervals. The bootstrap covers which cases are in the corpus, not whether the model

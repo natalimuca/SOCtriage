@@ -178,3 +178,33 @@ def test_indexer_document_shape():
     assert doc["triage"]["verdict"] == "inconclusive"
     assert doc["triage"]["escalate"] is True
     assert "@timestamp" in doc
+
+
+def test_agreement_against_self_is_perfect(tmp_path):
+    import json
+
+    from soc.score import agreement
+
+    labels = Path("eval/labels.json")
+    scores = Path("eval/scores.json")
+    assert labels.exists() and scores.exists()
+
+    # a run compared against labels built from that same run agrees perfectly
+    data = json.loads(scores.read_text(encoding="utf-8"))
+    synth = {r["case"]: {"verdict": r["verdict"], "escalate": r["escalate"], "techniques": [], "severity": r["severity"]} for r in data["cases"]}
+    p = tmp_path / "labels.json"
+    p.write_text(json.dumps(synth), encoding="utf-8")
+
+    report = agreement(labels=str(p), scores=str(scores))
+    assert report["verdict_kappa"] == 1.0
+    assert report["contested"] == []
+
+
+def test_agreement_reports_real_disagreement():
+    from soc.score import agreement
+
+    report = agreement()  # labels vs opus
+    assert 0.0 <= report["verdict_kappa"] <= 1.0
+    assert report["cases"] == 40
+    for c in report["contested"]:
+        assert c["label_verdict"] != c["model_verdict"]

@@ -195,6 +195,34 @@ def compare(
 
 
 @app.command()
+def agreement(
+    labels: str = typer.Option("eval/labels.json"),
+    scores: str = typer.Option("eval/scores-opus.json", help="a model run to treat as a second annotator"),
+):
+    """Inter-annotator agreement between the hand labels and a model's independent verdicts."""
+    from .score import agreement as run_agreement
+
+    report = run_agreement(labels=labels, scores=scores)
+    console.print(
+        f"[bold]{report['annotator']}[/] as second annotator over {report['cases']} cases"
+    )
+    table = Table()
+    for col in ("dimension", "Cohen's kappa", "raw agreement"):
+        table.add_column(col)
+    table.add_row("verdict", f"{report['verdict_kappa']:.3f}", f"{report['verdict_agreement']:.3f}")
+    table.add_row("escalation", f"{report['escalation_kappa']:.3f}", f"{report['escalation_agreement']:.3f}")
+    console.print(table)
+    if report["contested"]:
+        console.print(f"\n[yellow]{len(report['contested'])} contested cases[/] (label != model):")
+        for c in report["contested"]:
+            console.print(
+                f"  {c['case']}: label=[cyan]{c['label_verdict']}[/] model=[magenta]{c['model_verdict']}[/]"
+            )
+    else:
+        console.print("no contested cases")
+
+
+@app.command()
 def stack(action: str = typer.Argument(..., help="up, down, status, or logs")):
     """Control the Wazuh docker stack."""
     docker = ROOT / "docker"

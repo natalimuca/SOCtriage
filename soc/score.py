@@ -192,3 +192,50 @@ def evaluate(
         "intervals": intervals(counted),
         "cases": sorted(rows, key=lambda r: r["case"]),
     }
+
+
+def _kappa(a: dict, b: dict) -> tuple[float, float, list[str]]:
+    from collections import Counter
+
+    cases = sorted(set(a) & set(b))
+    n = len(cases) or 1
+    agree = sum(1 for c in cases if a[c] == b[c]) / n
+    ca, cb = Counter(a[c] for c in cases), Counter(b[c] for c in cases)
+    pe = sum((ca[l] / n) * (cb[l] / n) for l in set(ca) | set(cb))
+    kappa = (agree - pe) / (1 - pe) if pe < 1 else 1.0
+    return kappa, agree, cases
+
+
+def agreement(labels: str = "eval/labels.json", scores: str = "eval/scores-opus.json") -> dict:
+    """Treat a model's independent verdicts as a second annotator and measure how often it
+    agrees with the hand-written labels. A model is not a human, but disagreements flag which
+    labels are contestable rather than assuming the single annotator was right."""
+    truth = json.loads(Path(labels).read_text(encoding="utf-8"))
+    other = {r["case"]: r for r in json.loads(Path(scores).read_text(encoding="utf-8"))["cases"]}
+
+    mine_v = {c: truth[c]["verdict"] for c in truth if c in other}
+    their_v = {c: other[c]["verdict"] for c in other if c in truth}
+    mine_e = {c: truth[c]["escalate"] for c in truth if c in other}
+    their_e = {c: other[c]["escalate"] for c in other if c in truth}
+
+    kv, av, cases = _kappa(mine_v, their_v)
+    ke, ae, _ = _kappa(mine_e, their_e)
+    contested = [
+        {
+            "case": c,
+            "label_verdict": mine_v[c],
+            "model_verdict": their_v[c],
+            "note": truth[c].get("note", ""),
+        }
+        for c in cases
+        if mine_v[c] != their_v[c]
+    ]
+    return {
+        "annotator": other[cases[0]].get("analyst", scores) if cases else scores,
+        "cases": len(cases),
+        "verdict_kappa": kv,
+        "verdict_agreement": av,
+        "escalation_kappa": ke,
+        "escalation_agreement": ae,
+        "contested": contested,
+    }
