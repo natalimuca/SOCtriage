@@ -180,6 +180,8 @@ the corpus cannot tell the two apart.
 python -m soc.cli compare eval/scores.json eval/scores-opus.json
 ```
 
+![Paired bootstrap comparison](docs/compare.png)
+
 Running it against the three comparisons this repo actually made:
 
 | comparison | metric | delta | 95% CI of delta | verdict |
