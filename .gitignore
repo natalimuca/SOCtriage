@@ -12,3 +12,4 @@ eval/baseline.json
 # GUIDE downloads and score artifacts
 eval/GUIDE_*.csv
 eval/guide-baseline.json
+eval/ait_ads.zip

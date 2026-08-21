@@ -256,6 +256,40 @@ def guide(
 
 
 @app.command()
+def ait(
+    path: str = typer.Argument("eval/ait_ads.zip", help="AIT alert dataset zip (Zenodo 8263181)"),
+    analyst: str = typer.Option("rules"),
+    model: str = typer.Option(None),
+    out: str = typer.Option("eval/scores-ait.json"),
+):
+    """Score an analyst against AIT's published Wazuh alerts, labelled by its attack schedule."""
+    from .ait import load
+    from .score import evaluate_incidents
+
+    build_checked(analyst, model=model)
+    with console.status("loading and labelling AIT incidents"):
+        incidents, labels = load(path)
+    from collections import Counter
+    dist = Counter(labels[i.id]["verdict"] for i in incidents)
+    console.print(f"{len(incidents)} incidents from AIT testbeds, labels from the attack schedule ({dict(dist)})")
+
+    report = evaluate_incidents(incidents, labels, analyst=analyst, model=model)
+    Path(out).write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+    table = Table(title=f"{report['analyst']} vs AIT labels ({report['incidents_produced']} incidents, real Wazuh alerts)")
+    table.add_column("metric")
+    table.add_column("value", justify="right")
+    table.add_column("95% CI", justify="right")
+    for key in ("verdict_accuracy", "escalation_f1", "escalation_precision", "escalation_recall", "brier", "cost_per_incident_usd"):
+        v = report["metrics"].get(key)
+        ci = report["intervals"].get(key)
+        table.add_row(key, f"{v:.3f}" if isinstance(v, float) else str(v), f"[{ci['low']:.3f}, {ci['high']:.3f}]" if ci else "")
+    console.print(table)
+    console.print("balanced corpus, so the majority-class floor is 0.500")
+    console.print(f"scores written to {out}")
+
+
+@app.command()
 def stack(action: str = typer.Argument(..., help="up, down, status, or logs")):
     """Control the Wazuh docker stack."""
     docker = ROOT / "docker"

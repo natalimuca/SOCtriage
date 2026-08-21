@@ -292,38 +292,69 @@ Per-case detail lands in the scores file, showing exactly which cases each analy
 and what it said. Committed runs: `eval/scores-rules.json`, `eval/scores.json` (Haiku), and
 `eval/scores-opus.json` (Opus 5), all on the current 40-case corpus.
 
-## External validation on GUIDE
+## External validation
 
-The single-annotator problem has a real fix: score against labels other people wrote. Microsoft's
-[GUIDE dataset](https://www.kaggle.com/datasets/Microsoft/microsoft-security-incident-prediction)
-is 1M incidents whose triage grade (TruePositive / BenignPositive / FalsePositive) was assigned
-by real customer SOC analysts. `soc/guide.py` reshapes a sample of it into the pipeline's
-incident format and maps the grade to a verdict, and `soc guide <csv>` scores any analyst
-against those grades:
+The single-annotator problem has a real fix: score against labels other people wrote. Two public
+datasets were tried, and together they say more than either would alone.
+
+### AIT: real Wazuh alerts, external labels
+
+The [AIT Alert Data Set](https://zenodo.org/record/8263181) is native Wazuh alerts from eight
+published testbeds at the Austrian Institute of Technology. Each testbed ran one real kill chain
+(network and service scans, WordPress and directory brute-forcing, a web shell, password
+cracking, a reverse shell, privilege escalation, service stop, DNS exfiltration) at documented
+UTC times, so every alert can be labelled attack or benign from the schedule the authors
+published. Unlike GUIDE the content is readable: rule descriptions, source IPs, and hosts are
+intact. `soc/ait.py` builds one incident per attack phase that Wazuh actually flagged and
+samples benign windows for the negatives, balanced so the majority-class floor is 0.5.
 
 ```bash
-python -m soc.cli guide eval/GUIDE_Test.csv --analyst claude --sample 45
+python -m soc.cli ait --analyst claude
 ```
 
-The result was not a clean win, and the reason is worth more than a win would have been. GUIDE
-is anonymized: alert titles, hostnames, IPs, and usernames are all replaced with integer hashes.
-The only readable signal left is the category, the ATT&CK technique, and the entity type. On 45
-incidents balanced across the grades, Haiku returned `inconclusive` on 43 of them, and on the 2
-it committed to it was right both times.
+On 32 balanced incidents of real Wazuh alerts labelled by AIT's schedule:
+
+| metric | rules baseline | haiku 4.5 |
+| --- | --- | --- |
+| verdict accuracy | 0.344 [0.19, 0.53] | 0.625 [0.44, 0.78] |
+| escalation F1 | 0.647 | 0.667 |
+| escalation precision | 0.611 | 1.000 |
+| escalation recall | 0.688 | 0.500 |
+| Brier | 0.250 | 0.203 |
+
+The model beats both the 0.5 majority floor and the rule-level baseline on verdict accuracy,
+against labels it never saw and content from someone else's lab. The shape of the result is the
+honest part. Escalation precision is 1.000: all sixteen benign windows were correctly left
+alone, so the model never cried wolf on real background traffic. Recall is 0.500: it caught the
+web attacks and scans that left a clear trace and missed the phases where host-based Wazuh emits
+only generic "IDS event" alerts that genuinely do not distinguish an attack from noise. That is
+a detection-coverage limit, not a triage failure, and it is visible because the labels come from
+ground truth rather than from the alerts themselves.
+
+The paired bootstrap puts the verdict-accuracy gain over the baseline at +0.281 with the
+interval just touching zero at this sample size, so the effect is large but not separated on 32
+cases. It points the same direction as the lab corpus, on data nobody in this project labelled.
+
+### GUIDE: what anonymization costs
+
+Microsoft's [GUIDE dataset](https://www.kaggle.com/datasets/Microsoft/microsoft-security-incident-prediction)
+is 1M incidents graded by real customer analysts, which is a stronger label source, but it is
+anonymized: alert titles, hosts, IPs, and usernames are all integer hashes. Only the category,
+the ATT&CK technique, and the entity type survive. On 45 incidents, Haiku returned `inconclusive`
+on 43 and was right on the 2 it committed to.
 
 That is the correct behaviour, not a failure. With the deciding evidence hashed away, an honest
-triage says "I cannot call this, send it to a human", which is exactly what the playbook
-instructs. The consequences show it: escalation recall is 1.000, so every one of the 15 real
-incidents was caught, while the model declined to invent verdicts it could not support. A system
-that returned confident guesses on stripped-down categorical features would score higher on
-paper and be worse in practice.
+triage says "I cannot call this, send it to a human", which is what the playbook instructs.
+Escalation recall was 1.000, so every real incident was still caught, while the model declined
+to invent verdicts it could not support. GUIDE therefore validates calibration under
+distribution shift rather than verdict accuracy: handed data far outside its lab corpus and
+stripped of readable content, the model fails safe instead of hallucinating. A system that
+returned confident guesses on those features would score higher on paper and be worse in
+practice.
 
-So GUIDE does not validate verdict accuracy here, because the anonymized features are too thin
-for anyone to make GUIDE's binary call from, and forcing the model to guess would only reward
-overconfidence. What it does validate is calibration under distribution shift: handed data far
-outside its lab corpus, the model fails safe rather than hallucinating. The honest use of GUIDE
-would need its un-anonymized form, which is not public. The adapter and command are in the repo
-so the check reruns against any labelled corpus in that schema.
+Both adapters and their commands (`soc ait`, `soc guide`) are in the repo, so either check
+reruns against the full datasets. Neither dataset carries a severity or an `inconclusive` grade,
+so both validate the verdict and escalation axes, not severity.
 
 ## Design notes
 
@@ -354,11 +385,14 @@ part of the system and the metric that watches it is `correlation_purity`.
 
 ## Limits
 
-Forty cases is still a small corpus, and I wrote both the alerts and the labels, so it measures
-agreement with one analyst's judgement rather than ground truth from a real environment.
-Expanding from fourteen to forty roughly halved the intervals and turned the headline result,
+Forty cases is still a small corpus, and I wrote both the alerts and the labels, so the lab
+scoreboard measures agreement with one analyst's judgement rather than ground truth. That is why
+the External validation section scores the same pipeline against two public datasets nobody in
+this project labelled: on AIT's real Wazuh alerts the model beats the baseline on labels it
+never saw, and on GUIDE's anonymized data it fails safe rather than guessing. Expanding the lab
+corpus from fourteen to forty cases roughly halved the intervals and turned the headline result,
 that the models beat the threshold baseline, from "cannot tell" into an established finding; it
-did not make the corpus representative. Treat the numbers as a regression harness for changes to
+did not make the lab corpus representative, which is what the external datasets are for. Treat the numbers as a regression harness for changes to
 the prompt, model, or enrichment, not as evidence about production performance. Feeding it real
 labelled alerts is the obvious next step and nothing in the pipeline needs to change to do it.
 

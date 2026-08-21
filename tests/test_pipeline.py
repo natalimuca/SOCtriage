@@ -238,3 +238,24 @@ def test_guide_adapter_groups_and_maps(tmp_path):
     verdicts = {labels[i.id]["verdict"] for i in incidents}
     assert verdicts == {"true_positive", "false_positive"}
     assert sum(labels[i.id]["escalate"] for i in incidents) == 1
+
+
+def test_ait_phase_labelling_and_ranking():
+    from datetime import datetime, timezone
+
+    from soc.ait import ATTACK_TIMES, _phase_of, _top, _windows
+
+    # every shipped testbed has the full phase schedule
+    assert set(ATTACK_TIMES) and all("webshell" in v for v in ATTACK_TIMES.values())
+
+    tb = next(iter(ATTACK_TIMES))
+    windows = _windows(tb)
+    lo, hi = windows["webshell"]
+    mid = lo + (hi - lo) / 2
+    assert _phase_of(mid, windows) == "webshell"
+    assert _phase_of(lo.replace(year=1990), windows) is None
+
+    # _top surfaces the highest-severity alerts regardless of arrival order
+    lvls = [alert(n, level=lvl) for n, lvl in enumerate([3, 12, 5, 9])]
+    top2 = _top(lvls, 2)
+    assert {a.rule_level for a in top2} == {12, 9}
