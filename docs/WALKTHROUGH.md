@@ -199,11 +199,72 @@ This does not remove the bias, since the same person wrote the labels and chose 
 does name the four cases a second human should adjudicate first, which is more useful than
 asserting the single annotator was right. Two independent human annotators remain the real fix.
 
+## 5. Does it hold on data nobody here labelled?
+
+The κ check still uses my corpus. The stronger move is to score the same pipeline against public
+datasets that other people built and labelled. Two were tried, and together they say more than
+either alone.
+
+### AIT: real Wazuh alerts, external labels
+
+The [AIT Alert Data Set](https://zenodo.org/record/8263181) is native Wazuh alerts from eight
+published testbeds at the Austrian Institute of Technology. Each testbed ran one real kill chain
+(scans, WordPress and directory brute-forcing, a web shell, password cracking, a reverse shell,
+privilege escalation, DNS exfiltration) at documented UTC times, so every alert can be labelled
+attack or benign from the schedule the authors released. Crucially, unlike GUIDE below, the
+content is readable: rule descriptions, source IPs, and hosts are intact. `soc/ait.py` builds one
+incident per attack phase Wazuh flagged and samples benign windows for the negatives, balanced so
+the majority-class floor is 0.5.
+
+```bash
+python -m soc.cli ait --analyst claude
+```
+
+On 32 balanced incidents of real Wazuh alerts, labelled by AIT's schedule and not by anyone here:
+
+| metric | rules baseline | haiku 4.5 |
+| --- | --- | --- |
+| verdict accuracy | 0.344 [0.19, 0.53] | 0.625 [0.44, 0.78] |
+| escalation F1 | 0.647 | 0.667 |
+| escalation precision | 0.611 | 1.000 |
+| escalation recall | 0.688 | 0.500 |
+| Brier | 0.250 | 0.203 |
+
+The model beats both the 0.5 majority floor and the rule-level baseline on verdict accuracy,
+against labels it never saw. The shape is the honest part. Escalation precision is 1.000: all
+sixteen benign windows were correctly left alone, so it never cried wolf on real background
+traffic. Recall is 0.500: it caught the web attacks and scans that left a clear trace and missed
+the phases where host-based Wazuh emits only generic "IDS event" alerts that genuinely do not
+distinguish an attack from noise. That is a detection-coverage limit, not a triage failure, and
+it is only visible because the labels are ground truth rather than derived from the alerts.
+
+The paired bootstrap puts the verdict gain over the baseline at +0.281, with the interval just
+touching zero at 32 cases: a large effect, short of separation at this sample size, pointing the
+same direction as the lab corpus on data nobody in this project labelled.
+
+### GUIDE: what anonymization costs
+
+Microsoft's
+[GUIDE dataset](https://www.kaggle.com/datasets/Microsoft/microsoft-security-incident-prediction)
+is 1M incidents graded by real customer analysts, a stronger label source, but it is anonymized:
+titles, hosts, IPs, and usernames are integer hashes, leaving only the category, the ATT&CK
+technique, and the entity type. On 45 incidents Haiku returned `inconclusive` on 43 and was right
+on the 2 it committed to.
+
+That is correct behaviour, not a failure. With the deciding evidence hashed away, the honest
+triage answer is "I cannot call this, send it to a human", which is what the playbook says.
+Escalation recall was 1.000, so every real incident was still caught while the model declined to
+invent verdicts it could not support. GUIDE therefore validates calibration under distribution
+shift rather than verdict accuracy: stripped of readable content, the model fails safe instead of
+hallucinating. A system that guessed confidently on those features would score higher on paper
+and be worse in practice.
+
 ## The arc
 
 Raw SIEM alerts (1), the pipeline's triage separating attacker from admin (2), verdicts written
-back into the SIEM as a searchable escalation queue (3), and an evaluation that establishes the
-difference is real while staying honest about what it cannot establish (4). That is the whole
-project. The LLM does the tier-1 first pass, its output lands where a real SOC would consume it,
-and there are numbers behind the claim rather than a vibe. The design rationale and the full
-per-case detail are in the [README](../README.md).
+back into the SIEM as a searchable escalation queue (3), an evaluation that establishes the
+difference is real while staying honest about what it cannot establish (4), and external
+validation on two public datasets nobody here labelled (5). That is the whole project. The LLM
+does the tier-1 first pass, its output lands where a real SOC would consume it, and there are
+numbers behind the claim, including on other people's data, rather than a vibe. The design
+rationale and the full per-case detail are in the [README](../README.md).
